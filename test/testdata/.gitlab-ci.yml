@@ -1,0 +1,142 @@
+image: busybox:latest
+
+stages:
+  - build
+  - test
+  - deploy
+  - report
+  - cleanup
+
+before_script:
+  - echo "This is a before script section"
+  - echo "Anything to run such as dependencies or debugging"
+
+after_script:
+  - echo "This is a after script section"
+  - echo "Let's do some cleanup"
+
+build1:
+  stage: build
+  script:
+    - echo "Do your build here"
+
+build2:
+  stage: build
+  script:
+    - echo "Do your build here"
+    - sleep 10
+    - echo "1 sleep"
+    - sleep 10
+    - echo "2 sleep"
+    - sleep 10
+    - echo "3 sleep"
+    - sleep 10
+
+build2:fails:
+  stage: build
+  script:
+    - echo "Do your build here"
+    - sleep 5
+    - exit 1
+  allow_failure: true
+
+test1:
+  stage: test
+  script:
+    - echo "Do a test here"
+    - echo "For example run a test suite"
+
+test2:
+  stage: test
+  script:
+    - echo "Do another parallel test here"
+    - echo "For example run a lint test"
+    - sleep 10
+
+test2:really_a_long_name_for:
+  stage: test
+  script:
+    - echo "Do another parallel test here"
+    - echo "For example run a lint test"
+    - sleep 60
+
+test2:no_suffix:test:
+  stage: test
+  script:
+    - echo "Do another parallel test here"
+    - echo "For example run a lint test"
+    - sleep 60
+
+test3:
+  stage: test
+  script:
+    - echo "Do yet another parallel test here"
+
+deploy1:
+  stage: deploy
+  script:
+    - echo "Do your deploy here"
+    - sleep 60
+  environment:
+    name: stage
+
+deploy2:
+  stage: deploy
+  script:
+    - echo "Do a manual deploy here"
+  when: manual
+  environment:
+    name: prod
+
+deploy3:no_sufix:deploy:
+  stage: deploy
+  script:
+    - echo "Do a manual deploy here"
+    - sleep 15
+
+deploy4:
+  stage: deploy
+  script:
+    - echo "Do a manual deploy here"
+    - sleep 25
+
+deploy5:really_a_long_name_for:
+  stage: deploy
+  script:
+    - echo "Do a manual deploy here"
+    - sleep 3
+
+deploy6:
+  stage: deploy
+  script:
+    - echo "Do a manual deploy here"
+    - sleep 4
+
+report1:
+    stage: report
+    script:
+        - echo "Hey I have reported. I am report 1"
+report2:
+    stage: report
+    script:
+        - echo "Hey I have reported. I am report 2"
+report2:
+    stage: report
+    script:
+        - echo "Hey I have reported. I am report 3"
+cleanup1:
+    stage: cleanup
+    script:
+        - echo "Do some cleanup1"
+cleanup2:
+    stage: cleanup
+    script:
+        - echo "Do some cleanup1"
+cleanup3:
+    stage: cleanup
+    script:
+        - echo "Do some cleanup1"
+cleanup4:
+    stage: cleanup
+    script:
+        - echo "Do some cleanup1"

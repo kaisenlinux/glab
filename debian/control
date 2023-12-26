@@ -1,0 +1,19 @@
+Source: glab
+Section: utils
+Priority: optional
+Maintainer: Kevin Chevreuil - Kaisen <kaisen@kaisenlinux.org>
+Rules-Requires-Root: no
+Build-Depends:
+ debhelper-compat (= 13), golang-go (>= 1.19), dh-golang,
+Standards-Version: 4.6.2
+Homepage: https://gitlab.com/gitlab-org/cli
+Vcs-Browser: https://gitlab.com/kaisenlinux/packages/glab
+Vcs-Git: https://gitlab.com/kaisenlinux/packages/glab.git
+
+Package: glab
+Architecture: amd64 arm64
+Multi-Arch: foreign
+Depends:
+ ${shlibs:Depends},
+ ${misc:Depends},
+Description: A GitLab CLI tool bringing GitLab to your command line

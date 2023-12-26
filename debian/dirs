@@ -1,0 +1,7 @@
+usr
+usr/bin
+usr/share
+usr/share/bash-completion
+usr/share/bash-completion/completions
+usr/share/zsh
+usr/share/zsh/vendor-completions

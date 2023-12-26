@@ -1,0 +1,23 @@
+#!/usr/bin/make -f
+
+export GOPATH=$(CURDIR)/_build
+
+%:
+	dh $@ --buildsystem=golang --builddirectory=_build
+
+override_dh_auto_clean:
+	rm -rf $(CURDIR)/_build $(CURDIR)/share
+
+override_dh_auto_build:
+	make build
+	make manpage
+	make gen-docs
+
+override_dh_auto_test:
+
+override_dh_dwz:
+
+override_dh_auto_install:
+	install -p -m 0755 $(CURDIR)/bin/glab $(CURDIR)/debian/glab/usr/bin/
+	$(CURDIR)/debian/glab/usr/bin/glab completion -s bash > $(CURDIR)/debian/glab/usr/share/bash-completion/completions/glab
+	$(CURDIR)/debian/glab/usr/bin/glab completion -s zsh > $(CURDIR)/debian/glab/usr/share/zsh/vendor-completions/_glab

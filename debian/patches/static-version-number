@@ -1,0 +1,13 @@
+Author: Kevin Chevreuil - Kaisen <kaisen@localhost.localdomain>
+
+--- glab-1.36.0.orig/Makefile
++++ glab-1.36.0/Makefile
+@@ -12,7 +12,7 @@ endif
+ TEST_FORMAT = short-verbose
+ endif
+ 
+-GLAB_VERSION ?= $(shell git describe --tags 2>/dev/null || git rev-parse --short HEAD)
++GLAB_VERSION ?= 1.36.0
+ DATE_FMT = +%Y-%m-%d
+ ifdef SOURCE_DATE_EPOCH
+     BUILD_DATE ?= $(shell date -u -d "@$(SOURCE_DATE_EPOCH)" "$(DATE_FMT)" 2>/dev/null || date -u -r "$(SOURCE_DATE_EPOCH)" "$(DATE_FMT)" 2>/dev/null || date -u "$(DATE_FMT)")
