@@ -18,6 +18,7 @@ override_dh_auto_test:
 override_dh_dwz:
 
 override_dh_auto_install:
+	install -p -m 0644 $(CURDIR)/debian/glab.png $(CURDIR)/debian/glab/usr/share/pixmaps/
 	install -p -m 0755 $(CURDIR)/bin/glab $(CURDIR)/debian/glab/usr/bin/
 	$(CURDIR)/debian/glab/usr/bin/glab completion -s bash > $(CURDIR)/debian/glab/usr/share/bash-completion/completions/glab
 	$(CURDIR)/debian/glab/usr/bin/glab completion -s zsh > $(CURDIR)/debian/glab/usr/share/zsh/vendor-completions/_glab
