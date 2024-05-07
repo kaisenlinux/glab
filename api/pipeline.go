@@ -127,8 +127,8 @@ var GetLastPipeline = func(client *gitlab.Client, repo string, ref string) (*git
 	}
 
 	l := &gitlab.ListProjectPipelinesOptions{
-		Ref:  gitlab.String(ref),
-		Sort: gitlab.String("desc"),
+		Ref:  gitlab.Ptr(ref),
+		Sort: gitlab.Ptr("desc"),
 	}
 
 	l.Page = 1
@@ -257,8 +257,8 @@ var GetPipelineFromBranch = func(client *gitlab.Client, ref, repo string) ([]*gi
 		}
 	}
 	l := &gitlab.ListProjectPipelinesOptions{
-		Ref:  gitlab.String(ref),
-		Sort: gitlab.String("desc"),
+		Ref:  gitlab.Ptr(ref),
+		Sort: gitlab.Ptr("desc"),
 	}
 	l.Page = 1
 	l.PerPage = 1
@@ -381,7 +381,7 @@ var PipelineJobsWithSha = func(client *gitlab.Client, pid interface{}, sha strin
 		client = apiClient.Lab()
 	}
 	pipelines, err := GetPipelines(client, &gitlab.ListProjectPipelinesOptions{
-		SHA: gitlab.String(sha),
+		SHA: gitlab.Ptr(sha),
 	}, pid)
 	if len(pipelines) == 0 || err != nil {
 		return nil, nil, err
@@ -389,14 +389,17 @@ var PipelineJobsWithSha = func(client *gitlab.Client, pid interface{}, sha strin
 	return PipelineJobsWithID(client, pid, pipelines[0].ID)
 }
 
-var ProjectNamespaceLint = func(client *gitlab.Client, projectID int, content string) (*gitlab.ProjectLintResult, error) {
+var ProjectNamespaceLint = func(client *gitlab.Client, projectID int, content string, ref string, dryRun bool, includeJobs bool) (*gitlab.ProjectLintResult, error) {
 	if client == nil {
 		client = apiClient.Lab()
 	}
 	c, _, err := client.Validate.ProjectNamespaceLint(
 		projectID,
 		&gitlab.ProjectNamespaceLintOptions{
-			Content: &content,
+			Content:     &content,
+			DryRun:      &dryRun,
+			Ref:         &ref,
+			IncludeJobs: &includeJobs,
 		},
 	)
 	if err != nil {
@@ -432,6 +435,14 @@ var CreatePipeline = func(client *gitlab.Client, projectID interface{}, opts *gi
 		client = apiClient.Lab()
 	}
 	pipe, _, err := client.Pipelines.CreatePipeline(projectID, opts)
+	return pipe, err
+}
+
+var RunPipelineTrigger = func(client *gitlab.Client, projectID interface{}, opts *gitlab.RunPipelineTriggerOptions) (*gitlab.Pipeline, error) {
+	if client == nil {
+		client = apiClient.Lab()
+	}
+	pipe, _, err := client.PipelineTriggers.RunPipelineTrigger(projectID, opts)
 	return pipe, err
 }
 

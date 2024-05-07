@@ -186,26 +186,26 @@ func groupClone(opts *CloneOptions, ctxOpts *ContextOpts) error {
 	c := opts.IO.Color()
 	ListGroupProjectOpts := &gitlab.ListGroupProjectsOptions{}
 	if opts.WithShared {
-		ListGroupProjectOpts.WithShared = gitlab.Bool(true)
+		ListGroupProjectOpts.WithShared = gitlab.Ptr(true)
 	}
 	if opts.WithMREnabled {
-		ListGroupProjectOpts.WithMergeRequestsEnabled = gitlab.Bool(true)
+		ListGroupProjectOpts.WithMergeRequestsEnabled = gitlab.Ptr(true)
 	}
 	if opts.WithIssuesEnabled {
-		ListGroupProjectOpts.WithIssuesEnabled = gitlab.Bool(true)
+		ListGroupProjectOpts.WithIssuesEnabled = gitlab.Ptr(true)
 	}
 	if opts.Owned {
-		ListGroupProjectOpts.Owned = gitlab.Bool(true)
+		ListGroupProjectOpts.Owned = gitlab.Ptr(true)
 	}
 	if opts.ArchivedSet {
-		ListGroupProjectOpts.Archived = gitlab.Bool(opts.Archived)
+		ListGroupProjectOpts.Archived = gitlab.Ptr(opts.Archived)
 	}
 	if opts.IncludeSubgroups {
 		includeSubGroups := true
 		ListGroupProjectOpts.IncludeSubGroups = &includeSubGroups
 	}
 	if opts.Visibility != "" {
-		ListGroupProjectOpts.Visibility = gitlab.Visibility(gitlab.VisibilityValue(opts.Visibility))
+		ListGroupProjectOpts.Visibility = gitlab.Ptr(gitlab.VisibilityValue(opts.Visibility))
 	}
 
 	ListGroupProjectOpts.PerPage = 100
@@ -262,8 +262,7 @@ func cloneRun(opts *CloneOptions, ctxOpts *ContextOpts) (err error) {
 	} else if !strings.HasSuffix(ctxOpts.Repo, ".git") {
 		ctxOpts.Repo += ".git"
 	}
-	// We deep copy gitFlags for group clones that preserve namespaces
-	// To preserve namespaces, we
+	// To preserve namespaces, we deep copy gitFlags for group clones
 	var gitFlags []string
 	if opts.PreserveNamespace {
 		namespacedDir := ctxOpts.Project.PathWithNamespace

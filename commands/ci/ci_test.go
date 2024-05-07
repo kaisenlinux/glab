@@ -10,25 +10,63 @@ import (
 	"gitlab.com/gitlab-org/cli/commands/cmdutils"
 )
 
+var tests = []struct {
+	name        string
+	args        string
+	expectedOut string
+	expectedErr string
+}{
+	{
+		name:        "when no args should display the help message",
+		args:        "",
+		expectedOut: "Use \"ci [command] --help\" for more information about a command.\n",
+		expectedErr: "Aliases 'pipe' and 'pipeline' are deprecated. Please use 'ci' instead.",
+	},
+}
+
 func TestPipelineCmd(t *testing.T) {
-	old := os.Stdout // keep backup of the real stdout
-	r, w, _ := os.Pipe()
-	os.Stdout = w
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			wantedErr := ""
+			if len(test.expectedErr) > 0 {
+				wantedErr = test.expectedErr
+			}
 
-	assert.Nil(t, NewCmdCI(&cmdutils.Factory{}).Execute())
+			// Catching Stdout & Stderr
+			oldOut := os.Stdout
+			rOut, wOut, _ := os.Pipe()
+			os.Stdout = wOut
+			outC := make(chan string)
+			go func() {
+				var buf bytes.Buffer
+				_, _ = io.Copy(&buf, rOut)
+				outC <- buf.String()
+			}()
 
-	outC := make(chan string)
-	// copy the output in a separate goroutine so printing can't block indefinitely
-	go func() {
-		var buf bytes.Buffer
-		_, _ = io.Copy(&buf, r)
-		outC <- buf.String()
-	}()
+			oldErr := os.Stderr
+			rErr, wErr, _ := os.Pipe()
+			os.Stderr = wErr
+			errC := make(chan string)
+			go func() {
+				var buf bytes.Buffer
+				_, _ = io.Copy(&buf, rErr)
+				errC <- buf.String()
+			}()
 
-	// back to normal state
-	w.Close()
-	os.Stdout = old // restoring the real stdout
-	out := <-outC
+			err := NewCmdCI(&cmdutils.Factory{}).Execute()
 
-	assert.Contains(t, out, "Use \"ci [command] --help\" for more information about a command.\n")
+			// Rollbacking Stdout & Stderr
+			wOut.Close()
+			os.Stdout = oldOut
+			stdout := <-outC
+			wErr.Close()
+			os.Stderr = oldErr
+			stderr := <-errC
+
+			if assert.NoErrorf(t, err, "error running `ci %s` : %v", test.args, err) {
+				assert.Contains(t, stderr, wantedErr)
+				assert.Contains(t, stdout, test.expectedOut)
+			}
+		})
+	}
 }

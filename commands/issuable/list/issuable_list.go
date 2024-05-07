@@ -1,6 +1,7 @@
 package list
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -52,10 +53,13 @@ type ListOptions struct {
 	ListType       string
 	TitleQualifier string
 	OutputFormat   string
+	Output         string
 
 	IO         *iostreams.IOStreams
 	BaseRepo   func() (glrepo.Interface, error)
 	HTTPClient func() (*gitlab.Client, error)
+
+	JSONOutput bool
 }
 
 func NewCmdList(f *cmdutils.Factory, runE func(opts *ListOptions) error, issueType issuable.IssueType) *cobra.Command {
@@ -135,10 +139,12 @@ func NewCmdList(f *cmdutils.Factory, runE func(opts *ListOptions) error, issueTy
 	issueListCmd.Flags().BoolVarP(&opts.All, "all", "A", false, fmt.Sprintf("Get all %ss", issueType))
 	issueListCmd.Flags().BoolVarP(&opts.Closed, "closed", "c", false, fmt.Sprintf("Get only closed %ss", issueType))
 	issueListCmd.Flags().BoolVarP(&opts.Confidential, "confidential", "C", false, fmt.Sprintf("Filter by confidential %ss", issueType))
-	issueListCmd.Flags().StringVarP(&opts.OutputFormat, "output-format", "F", "details", "One of 'details', 'ids', or 'urls'")
+	issueListCmd.Flags().StringVarP(&opts.OutputFormat, "output-format", "F", "details", "One of 'details', 'ids', 'urls'")
+	issueListCmd.Flags().StringVarP(&opts.Output, "output", "O", "text", "One of 'text' or 'json'")
 	issueListCmd.Flags().IntVarP(&opts.Page, "page", "p", 1, "Page number")
 	issueListCmd.Flags().IntVarP(&opts.PerPage, "per-page", "P", 30, "Number of items to list per page.")
 	issueListCmd.PersistentFlags().StringP("group", "g", "", "Select a group/subgroup. This option is ignored if a repo argument is set.")
+	issueListCmd.MarkFlagsMutuallyExclusive("output", "output-format")
 
 	if issueType == issuable.TypeIssue {
 		issueListCmd.Flags().StringVarP(&opts.IssueType, "issue-type", "t", "", "Filter issue by its type {issue|incident|test_case}")
@@ -167,8 +173,8 @@ func listRun(opts *ListOptions) error {
 	}
 
 	listOpts := &gitlab.ListProjectIssuesOptions{
-		State: gitlab.String(opts.State),
-		In:    gitlab.String(opts.In),
+		State: gitlab.Ptr(opts.State),
+		In:    gitlab.Ptr(opts.In),
 	}
 	listOpts.Page = 1
 	listOpts.PerPage = 30
@@ -181,7 +187,7 @@ func listRun(opts *ListOptions) error {
 			}
 			opts.Assignee = u.Username
 		}
-		listOpts.AssigneeUsername = gitlab.String(opts.Assignee)
+		listOpts.AssigneeUsername = gitlab.Ptr(opts.Assignee)
 	}
 	if len(opts.NotAssignee) != 0 {
 		u, err := api.UsersByNames(apiClient, opts.NotAssignee)
@@ -195,7 +201,7 @@ func listRun(opts *ListOptions) error {
 		if err != nil {
 			return err
 		}
-		listOpts.AuthorID = gitlab.Int(u.ID)
+		listOpts.AuthorID = gitlab.Ptr(u.ID)
 	}
 	if len(opts.NotAuthor) != 0 {
 		u, err := api.UsersByNames(apiClient, opts.NotAuthor)
@@ -205,23 +211,23 @@ func listRun(opts *ListOptions) error {
 		listOpts.NotAuthorID = cmdutils.IDsFromUsers(u)
 	}
 	if opts.Search != "" {
-		listOpts.Search = gitlab.String(opts.Search)
+		listOpts.Search = gitlab.Ptr(opts.Search)
 		opts.ListType = "search"
 	}
 	if len(opts.Labels) != 0 {
-		listOpts.Labels = (*gitlab.Labels)(&opts.Labels)
+		listOpts.Labels = (*gitlab.LabelOptions)(&opts.Labels)
 		opts.ListType = "search"
 	}
 	if len(opts.NotLabels) != 0 {
-		listOpts.NotLabels = (*gitlab.Labels)(&opts.NotLabels)
+		listOpts.NotLabels = (*gitlab.LabelOptions)(&opts.NotLabels)
 		opts.ListType = "search"
 	}
 	if opts.Milestone != "" {
-		listOpts.Milestone = gitlab.String(opts.Milestone)
+		listOpts.Milestone = gitlab.Ptr(opts.Milestone)
 		opts.ListType = "search"
 	}
 	if opts.Confidential {
-		listOpts.Confidential = gitlab.Bool(opts.Confidential)
+		listOpts.Confidential = gitlab.Ptr(opts.Confidential)
 		opts.ListType = "search"
 	}
 	if opts.Page != 0 {
@@ -235,7 +241,7 @@ func listRun(opts *ListOptions) error {
 
 	issueType := "issue"
 	if opts.IssueType != "" {
-		listOpts.IssueType = gitlab.String(opts.IssueType)
+		listOpts.IssueType = gitlab.Ptr(opts.IssueType)
 		opts.ListType = "search"
 		issueType = opts.IssueType
 	}
@@ -259,6 +265,12 @@ func listRun(opts *ListOptions) error {
 	title.Page = listOpts.Page
 	title.ListActionType = opts.ListType
 	title.CurrentPageTotal = len(issues)
+
+	if opts.Output == "json" {
+		issueListJSON, _ := json.Marshal(issues)
+		fmt.Fprintln(opts.IO.StdOut, string(issueListJSON))
+		return nil
+	}
 
 	if opts.OutputFormat == "ids" {
 		for _, i := range issues {

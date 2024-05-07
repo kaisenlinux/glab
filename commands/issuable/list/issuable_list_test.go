@@ -3,6 +3,7 @@ package list
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"regexp"
 	"strings"
 	"testing"
@@ -349,4 +350,38 @@ func TestIssueList_hyperlinks(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestIssueListJSON(t *testing.T) {
+	fakeHTTP := httpmock.New()
+	defer fakeHTTP.Verify(t)
+
+	fakeHTTP.RegisterResponder(http.MethodGet, "/projects/OWNER/REPO/issues",
+		httpmock.NewFileResponse(http.StatusOK, "./testdata/issueListFull.json"))
+
+	output, err := runCommand("issue", fakeHTTP, true, "--output json", nil, "")
+	if err != nil {
+		t.Errorf("error running command `issue list -F json`: %v", err)
+	}
+
+	if err != nil {
+		panic(err)
+	}
+
+	b, err := os.ReadFile("./testdata/issueListFull.json")
+	if err != nil {
+		fmt.Print(err)
+	}
+
+	expectedOut := string(b)
+
+	assert.JSONEq(t, expectedOut, output.String())
+	assert.Empty(t, output.Stderr())
+}
+
+func TestIssueListMutualOutputFlags(t *testing.T) {
+	_, err := runCommand("issue", nil, true, "--output json --output-format ids", nil, "")
+
+	assert.NotNil(t, err)
+	assert.EqualError(t, err, "if any flags in the group [output output-format] are set none of the others can be; [output output-format] were all set")
 }

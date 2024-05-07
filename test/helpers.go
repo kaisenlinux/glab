@@ -3,6 +3,7 @@ package test
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"regexp"
@@ -105,6 +106,15 @@ func ExpectLines(t T, output string, lines ...string) {
 	}
 }
 
+func ClearEnvironmentVariables(t *testing.T) {
+	// prevent using environment variables for test
+	t.Setenv("GITLAB_TOKEN", "")
+	t.Setenv("VISUAL", "")
+	t.Setenv("EDITOR", "")
+	t.Setenv("GITLAB_ACCESS_TOKEN", "")
+	t.Setenv("OAUTH_TOKEN", "")
+}
+
 func GetHostOrSkip(t testing.TB) string {
 	t.Helper()
 	glTestHost := os.Getenv("GITLAB_TEST_HOST")
@@ -116,4 +126,21 @@ func GetHostOrSkip(t testing.TB) string {
 		t.Skip("Set GITLAB_TEST_HOST and GITLAB_TOKEN to run this integration test")
 	}
 	return glTestHost
+}
+
+func ReturnBuffer(old *os.File, r *os.File, w *os.File) string {
+	outC := make(chan string)
+	// copy the output in a separate goroutine so printing can't block indefinitely
+	go func() {
+		var buf bytes.Buffer
+		_, _ = io.Copy(&buf, r)
+		outC <- buf.String()
+	}()
+
+	// back to normal state
+	w.Close()
+	os.Stdout = old // restoring the real stdout
+	out := <-outC
+
+	return out
 }

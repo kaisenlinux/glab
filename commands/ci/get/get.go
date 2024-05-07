@@ -9,6 +9,7 @@ import (
 	"github.com/xanzy/go-gitlab"
 	"gitlab.com/gitlab-org/cli/api"
 	"gitlab.com/gitlab-org/cli/commands/cmdutils"
+	"gitlab.com/gitlab-org/cli/commands/mr/mrutils"
 	"gitlab.com/gitlab-org/cli/pkg/git"
 	"gitlab.com/gitlab-org/cli/pkg/tableprinter"
 
@@ -63,7 +64,24 @@ func NewCmdGet(f *cmdutils.Factory) *cobra.Command {
 				if err != nil {
 					return err
 				}
-				pipelineId = commit.LastPipeline.ID
+
+				// The latest commit on the branch won't work with a merged
+				// result pipeline
+				if commit.LastPipeline == nil {
+					mr, _, err := mrutils.MRFromArgs(f, args, "any")
+					if err != nil {
+						return err
+					}
+
+					if mr.HeadPipeline == nil {
+						return fmt.Errorf("no pipeline found. It might not exist yet. If this problem continues, check your pipeline configuration.")
+					} else {
+						pipelineId = mr.HeadPipeline.ID
+					}
+
+				} else {
+					pipelineId = commit.LastPipeline.ID
+				}
 			}
 
 			pipeline, err := api.GetPipeline(apiClient, pipelineId, nil, repo.FullName())
@@ -95,8 +113,9 @@ func NewCmdGet(f *cmdutils.Factory) *cobra.Command {
 			}
 
 			outputFormat, _ := cmd.Flags().GetString("output-format")
-			if outputFormat == "json" {
-				printJSON(*mergedPipelineObject)
+			output, _ := cmd.Flags().GetString("output")
+			if output == "json" || outputFormat == "json" {
+				printJSON(*mergedPipelineObject, f.IO.StdOut)
 			} else {
 				showJobDetails, _ := cmd.Flags().GetBool("with-job-details")
 				printTable(*mergedPipelineObject, f.IO.StdOut, showJobDetails)
@@ -108,16 +127,19 @@ func NewCmdGet(f *cmdutils.Factory) *cobra.Command {
 
 	pipelineGetCmd.Flags().StringP("branch", "b", "", "Check pipeline status for a branch. (Default is current branch)")
 	pipelineGetCmd.Flags().IntP("pipeline-id", "p", 0, "Provide pipeline ID")
-	pipelineGetCmd.Flags().StringP("output-format", "o", "text", "Format output as: text, json")
+	pipelineGetCmd.Flags().StringP("output", "F", "text", "Format output as: text, json")
+	pipelineGetCmd.Flags().StringP("output-format", "o", "text", "Use output")
+	_ = pipelineGetCmd.Flags().MarkHidden("output-format")
+	_ = pipelineGetCmd.Flags().MarkDeprecated("output-format", "Deprecated use output")
 	pipelineGetCmd.Flags().BoolP("with-job-details", "d", false, "Show extended job information")
 	pipelineGetCmd.Flags().Bool("with-variables", false, "Show variables in pipeline (maintainer role required)")
 
 	return pipelineGetCmd
 }
 
-func printJSON(p PipelineMergedResponse) {
+func printJSON(p PipelineMergedResponse, dest io.Writer) {
 	JSONStr, _ := json.Marshal(p)
-	fmt.Println(string(JSONStr))
+	fmt.Fprintln(dest, string(JSONStr))
 }
 
 func printTable(p PipelineMergedResponse, dest io.Writer, showJobDetails bool) {

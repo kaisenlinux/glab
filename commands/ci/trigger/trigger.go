@@ -9,6 +9,7 @@ import (
 
 	"github.com/MakeNowJust/heredoc"
 	"github.com/spf13/cobra"
+	"github.com/xanzy/go-gitlab"
 )
 
 func NewCmdTrigger(f *cmdutils.Factory) *cobra.Command {
@@ -18,7 +19,7 @@ func NewCmdTrigger(f *cmdutils.Factory) *cobra.Command {
 		Aliases: []string{},
 		Example: heredoc.Doc(`
 		$ glab ci trigger
-		# Tnteractively select a job to Trigger
+		# Interactively select a job to Trigger
 
 		$ glab ci trigger 224356863
 		# Trigger manual job with id 224356863
@@ -27,7 +28,6 @@ func NewCmdTrigger(f *cmdutils.Factory) *cobra.Command {
 		# Trigger manual job with name lint
 `),
 		Long: ``,
-		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			var err error
 
@@ -46,19 +46,26 @@ func NewCmdTrigger(f *cmdutils.Factory) *cobra.Command {
 			}
 			branch, _ := cmd.Flags().GetString("branch")
 			pipelineId, _ := cmd.Flags().GetInt("pipeline-id")
-
 			jobID, err := ciutils.GetJobId(&ciutils.JobInputs{
-				JobName:    jobName,
-				Branch:     branch,
-				PipelineId: pipelineId,
+				JobName:         jobName,
+				Branch:          branch,
+				PipelineId:      pipelineId,
+				SelectionPrompt: "Select pipeline job to trigger:",
+				SelectionPredicate: func(s *gitlab.Job) bool {
+					return s.Status == "manual"
+				},
 			}, &ciutils.JobOptions{
 				ApiClient: apiClient,
 				IO:        f.IO,
 				Repo:      repo,
 			})
 			if err != nil {
-				fmt.Fprintln(f.IO.StdErr, "invalid job ID:", args[0])
+				fmt.Fprintln(f.IO.StdErr, "invalid job ID:", jobName)
 				return err
+			}
+
+			if jobID == 0 {
+				return nil
 			}
 
 			job, err := api.PlayPipelineJob(apiClient, jobID, repo.FullName())

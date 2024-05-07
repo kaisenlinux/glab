@@ -1,6 +1,7 @@
 package list
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"gitlab.com/gitlab-org/cli/pkg/iostreams"
@@ -18,6 +19,7 @@ type Options struct {
 	Group         string
 	PerPage       int
 	Page          int
+	OutputFormat  string
 	FilterAll     bool
 	FilterOwned   bool
 	FilterMember  bool
@@ -38,7 +40,7 @@ func NewCmdList(f *cmdutils.Factory) *cobra.Command {
 	glab repo list
 	`),
 		Args:    cobra.ExactArgs(0),
-		Aliases: []string{"users"},
+		Aliases: []string{"ls"},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			opts.HTTPClient = f.HttpClient
 
@@ -51,6 +53,7 @@ func NewCmdList(f *cmdutils.Factory) *cobra.Command {
 	repoListCmd.Flags().StringVarP(&opts.Group, "group", "g", "", "Return only repositories in the given group and its subgroups")
 	repoListCmd.Flags().IntVarP(&opts.Page, "page", "p", 1, "Page number")
 	repoListCmd.Flags().IntVarP(&opts.PerPage, "per-page", "P", 30, "Number of items to list per page")
+	repoListCmd.Flags().StringVarP(&opts.OutputFormat, "output", "F", "text", "Format output as: text, json")
 	repoListCmd.Flags().BoolVarP(&opts.FilterAll, "all", "a", false, "List all projects on the instance")
 	repoListCmd.Flags().BoolVarP(&opts.FilterOwned, "mine", "m", false, "Only list projects you own (default if no filters are passed)")
 	repoListCmd.Flags().BoolVar(&opts.FilterMember, "member", false, "Only list projects which you are a member")
@@ -79,47 +82,55 @@ func runE(opts *Options) error {
 		return err
 	}
 
-	title := fmt.Sprintf("Showing %d of %d projects (Page %d of %d)\n", len(projects), resp.TotalItems, resp.CurrentPage, resp.TotalPages)
+	if opts.OutputFormat == "json" {
+		projectListJSON, _ := json.Marshal(projects)
+		fmt.Fprintln(opts.IO.StdOut, string(projectListJSON))
+	} else {
+		// Title
+		title := fmt.Sprintf("Showing %d of %d projects (Page %d of %d)\n", len(projects), resp.TotalItems, resp.CurrentPage, resp.TotalPages)
 
-	table := tableprinter.NewTablePrinter()
-	for _, prj := range projects {
-		table.AddCell(c.Blue(prj.PathWithNamespace))
-		table.AddCell(prj.SSHURLToRepo)
-		table.AddCell(prj.Description)
-		table.EndRow()
+		// List
+		table := tableprinter.NewTablePrinter()
+		for _, prj := range projects {
+			table.AddCell(c.Blue(prj.PathWithNamespace))
+			table.AddCell(prj.SSHURLToRepo)
+			table.AddCell(prj.Description)
+			table.EndRow()
+		}
+
+		fmt.Fprintf(opts.IO.StdOut, "%s\n%s\n", title, table.String())
 	}
 
-	fmt.Fprintf(opts.IO.StdOut, "%s\n%s\n", title, table.String())
 	return err
 }
 
 func listAllProjects(apiClient *gitlab.Client, opts Options) ([]*gitlab.Project, *gitlab.Response, error) {
 	l := &gitlab.ListProjectsOptions{
-		OrderBy: gitlab.String(opts.OrderBy),
+		OrderBy: gitlab.Ptr(opts.OrderBy),
 	}
 
 	// Other filters only valid if FilterAll not true
 	if !opts.FilterAll {
 		if !opts.FilterStarred && !opts.FilterMember {
 			// if no other filters are passed, default to Owned filter
-			l.Owned = gitlab.Bool(true)
+			l.Owned = gitlab.Ptr(true)
 		}
 
 		if opts.FilterOwned {
-			l.Owned = gitlab.Bool(opts.FilterOwned)
+			l.Owned = gitlab.Ptr(opts.FilterOwned)
 		}
 
 		if opts.FilterStarred {
-			l.Starred = gitlab.Bool(opts.FilterStarred)
+			l.Starred = gitlab.Ptr(opts.FilterStarred)
 		}
 
 		if opts.FilterMember {
-			l.Membership = gitlab.Bool(opts.FilterMember)
+			l.Membership = gitlab.Ptr(opts.FilterMember)
 		}
 	}
 
 	if opts.Sort != "" {
-		l.Sort = gitlab.String(opts.Sort)
+		l.Sort = gitlab.Ptr(opts.Sort)
 	}
 
 	l.PerPage = opts.PerPage
@@ -146,27 +157,27 @@ func listAllProjectsForGroup(apiClient *gitlab.Client, opts Options) ([]*gitlab.
 	}
 
 	l := &gitlab.ListGroupProjectsOptions{
-		OrderBy: gitlab.String(opts.OrderBy),
+		OrderBy: gitlab.Ptr(opts.OrderBy),
 	}
 
 	// Other filters only valid if FilterAll not true
 	if !opts.FilterAll {
 		if !opts.FilterStarred && !opts.FilterMember {
 			// if no other filters are passed, default to Owned filter
-			l.Owned = gitlab.Bool(true)
+			l.Owned = gitlab.Ptr(true)
 		}
 
 		if opts.FilterOwned {
-			l.Owned = gitlab.Bool(opts.FilterOwned)
+			l.Owned = gitlab.Ptr(opts.FilterOwned)
 		}
 
 		if opts.FilterStarred {
-			l.Starred = gitlab.Bool(opts.FilterStarred)
+			l.Starred = gitlab.Ptr(opts.FilterStarred)
 		}
 	}
 
 	if opts.Sort != "" {
-		l.Sort = gitlab.String(opts.Sort)
+		l.Sort = gitlab.Ptr(opts.Sort)
 	}
 
 	l.PerPage = opts.PerPage

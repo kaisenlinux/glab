@@ -108,6 +108,7 @@ func NewCmdView(f *cmdutils.Factory) *cobra.Command {
 			}
 
 			root := tview.NewFlex()
+			root.SetBackgroundColor(tcell.ColorDefault)
 			for _, l := range boardLists {
 				opts.state = ""
 				var boardIssues, listTitle, listColor string
@@ -147,9 +148,15 @@ func NewCmdView(f *cmdutils.Factory) *cobra.Command {
 				}
 
 				boardIssues = filterIssues(boardLists, issues, l, opts)
-				bx := tview.NewTextView().SetDynamicColors(true)
-				bx.SetText(boardIssues).SetWrap(true)
-				bx.SetBorder(true).SetTitle(listTitle).SetTitleColor(tcell.GetColor(listColor))
+				bx := tview.NewTextView()
+				bx.
+					SetDynamicColors(true).
+					SetText(boardIssues).
+					SetWrap(true).
+					SetBackgroundColor(tcell.ColorDefault).
+					SetBorder(true).
+					SetTitle(listTitle).
+					SetTitleColor(tcell.GetColor(listColor))
 				root.AddItem(bx, 0, 1, false)
 			}
 
@@ -198,7 +205,7 @@ func (opts *issueBoardViewOptions) getListProjectIssueOptions() *gitlab.ListProj
 	}
 
 	if len(opts.labels) != 0 {
-		labels := gitlab.Labels(opts.labels)
+		labels := gitlab.LabelOptions(opts.labels)
 		reqOpts.Labels = &labels
 	}
 
@@ -223,7 +230,7 @@ func (opts *issueBoardViewOptions) getListGroupIssueOptions() *gitlab.ListGroupI
 	}
 
 	if len(opts.labels) != 0 {
-		labels := gitlab.Labels(opts.labels)
+		labels := gitlab.LabelOptions(opts.labels)
 		reqOpts.Labels = &labels
 	}
 

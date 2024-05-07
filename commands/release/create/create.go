@@ -23,7 +23,6 @@ import (
 	"gitlab.com/gitlab-org/cli/pkg/utils"
 
 	"gitlab.com/gitlab-org/cli/internal/glrepo"
-	"gitlab.com/gitlab-org/cli/pkg/glinstance"
 	"gitlab.com/gitlab-org/cli/pkg/iostreams"
 
 	"github.com/spf13/cobra"
@@ -108,7 +107,7 @@ func NewCmdCreate(f *cmdutils.Factory) *cobra.Command {
 			      "name": "Asset1", 
 			      "url":"https://<domain>/some/location/1", 
 			      "link_type": "other", 
-			      "filepath": "path/to/file"
+			      "direct_asset_path": "path/to/file"
 			    }
 			  ]'
 `),
@@ -161,7 +160,7 @@ func NewCmdCreate(f *cmdutils.Factory) *cobra.Command {
 	cmd.Flags().StringVarP(&opts.NotesFile, "notes-file", "F", "", "Read release notes `file`. Specify `-` as value to read from stdin")
 	cmd.Flags().StringVarP(&opts.ReleasedAt, "released-at", "D", "", "The `date` when the release is/was ready. Defaults to the current datetime. Expected in ISO 8601 format (2019-03-15T08:00:00Z)")
 	cmd.Flags().StringSliceVarP(&opts.Milestone, "milestone", "m", []string{}, "The title of each milestone the release is associated with")
-	cmd.Flags().StringVarP(&opts.AssetLinksAsJson, "assets-links", "a", "", "`JSON` string representation of assets links (e.g. `--assets-links='[{\"name\": \"Asset1\", \"url\":\"https://<domain>/some/location/1\", \"link_type\": \"other\", \"filepath\": \"path/to/file\"}]')`")
+	cmd.Flags().StringVarP(&opts.AssetLinksAsJson, "assets-links", "a", "", "`JSON` string representation of assets links (e.g. `--assets-links='[{\"name\": \"Asset1\", \"url\":\"https://<domain>/some/location/1\", \"link_type\": \"other\", \"direct_asset_path\": \"path/to/file\"}]')`")
 
 	return cmd
 }
@@ -339,14 +338,11 @@ func createRun(opts *CreateOpts) error {
 		}
 
 		release, _, err = client.Releases.CreateRelease(repo.FullName(), createOpts)
-
 		if err != nil {
 			return releaseFailedErr(err, start)
 		}
 		opts.IO.Logf("%s Release created\t%s=%s\n", color.GreenCheck(),
-			color.Blue("url"), fmt.Sprintf("%s://%s/%s/-/releases/%s",
-				glinstance.OverridableDefaultProtocol(), glinstance.OverridableDefault(),
-				repo.FullName(), release.TagName))
+			color.Blue("url"), release.Links.Self)
 	} else {
 		updateOpts := &gitlab.UpdateReleaseOptions{
 			Name: &opts.Name,
@@ -369,9 +365,7 @@ func createRun(opts *CreateOpts) error {
 		}
 
 		opts.IO.Logf("%s Release updated\t%s=%s\n", color.GreenCheck(),
-			color.Blue("url"), fmt.Sprintf("%s://%s/%s/-/releases/%s",
-				glinstance.OverridableDefaultProtocol(), glinstance.OverridableDefault(),
-				repo.FullName(), release.TagName))
+			color.Blue("url"), release.Links.Self)
 	}
 
 	// upload files and create asset links

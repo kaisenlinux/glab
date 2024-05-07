@@ -2,7 +2,7 @@ package config
 
 import (
 	"bytes"
-	"errors"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -10,7 +10,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/zalando/go-keyring"
-	"gitlab.com/gitlab-org/cli/pkg/prompt"
 	"gopkg.in/yaml.v3"
 )
 
@@ -95,7 +94,7 @@ func Test_defaultConfig(t *testing.T) {
 
 	editor, err := cfg.Get("", "editor")
 	assert.Nil(t, err)
-	assert.Equal(t, "", editor)
+	assert.Equal(t, os.Getenv("EDITOR"), editor)
 
 	aliases, err := cfg.Aliases()
 	assert.Nil(t, err)
@@ -145,37 +144,4 @@ func Test_config_Get_NotFoundError(t *testing.T) {
 	_, err = local.FindEntry("git_protocol")
 	require.Error(t, err)
 	assert.True(t, isNotFoundError(err))
-}
-
-func Test_Prompt(t *testing.T) {
-	t.Run("success", func(t *testing.T) {
-		ask, teardown := prompt.InitAskStubber()
-		defer teardown()
-
-		ask.Stub([]*prompt.QuestionStub{
-			{
-				Name:  "config",
-				Value: "profclems/glab",
-			},
-		})
-
-		got, err := Prompt("pick a repo", "defaultValue")
-		assert.NoError(t, err)
-		assert.Equal(t, "profclems/glab", got)
-	})
-	t.Run("failed", func(t *testing.T) {
-		ask, teardown := prompt.InitAskStubber()
-		defer teardown()
-
-		ask.Stub([]*prompt.QuestionStub{
-			{
-				Name:  "config",
-				Value: errors.New("failed"),
-			},
-		})
-
-		got, err := Prompt("pick a repo", "defaultValue")
-		assert.EqualError(t, err, "failed")
-		assert.Equal(t, got, "")
-	})
 }

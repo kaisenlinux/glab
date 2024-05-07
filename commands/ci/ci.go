@@ -1,7 +1,11 @@
 package ci
 
 import (
+	"fmt"
+	"os"
+
 	jobArtifactCmd "gitlab.com/gitlab-org/cli/commands/ci/artifact"
+	ciConfigCmd "gitlab.com/gitlab-org/cli/commands/ci/config"
 	pipeDeleteCmd "gitlab.com/gitlab-org/cli/commands/ci/delete"
 	pipeGetCmd "gitlab.com/gitlab-org/cli/commands/ci/get"
 	legacyCICmd "gitlab.com/gitlab-org/cli/commands/ci/legacyci"
@@ -9,9 +13,10 @@ import (
 	pipeListCmd "gitlab.com/gitlab-org/cli/commands/ci/list"
 	pipeRetryCmd "gitlab.com/gitlab-org/cli/commands/ci/retry"
 	pipeRunCmd "gitlab.com/gitlab-org/cli/commands/ci/run"
+	pipeRunTrigCmd "gitlab.com/gitlab-org/cli/commands/ci/run_trig"
 	pipeStatusCmd "gitlab.com/gitlab-org/cli/commands/ci/status"
 	ciTraceCmd "gitlab.com/gitlab-org/cli/commands/ci/trace"
-	pipeTriggerCmd "gitlab.com/gitlab-org/cli/commands/ci/trigger"
+	jobPlayCmd "gitlab.com/gitlab-org/cli/commands/ci/trigger"
 	ciViewCmd "gitlab.com/gitlab-org/cli/commands/ci/view"
 	"gitlab.com/gitlab-org/cli/commands/cmdutils"
 
@@ -24,10 +29,13 @@ func NewCmdCI(f *cmdutils.Factory) *cobra.Command {
 		Short:   `Work with GitLab CI/CD pipelines and jobs`,
 		Long:    ``,
 		Aliases: []string{"pipe", "pipeline"},
+		Run: func(cmd *cobra.Command, args []string) {
+			fmt.Fprintf(os.Stderr, "Aliases 'pipe' and 'pipeline' are deprecated. Please use 'ci' instead.\n\n")
+			_ = cmd.Help()
+		},
 	}
 
 	cmdutils.EnableRepoOverride(ciCmd, f)
-
 	ciCmd.AddCommand(legacyCICmd.NewCmdCI(f))
 	ciCmd.AddCommand(ciTraceCmd.NewCmdTrace(f))
 	ciCmd.AddCommand(ciViewCmd.NewCmdView(f))
@@ -37,8 +45,11 @@ func NewCmdCI(f *cmdutils.Factory) *cobra.Command {
 	ciCmd.AddCommand(pipeStatusCmd.NewCmdStatus(f))
 	ciCmd.AddCommand(pipeRetryCmd.NewCmdRetry(f))
 	ciCmd.AddCommand(pipeRunCmd.NewCmdRun(f))
-	ciCmd.AddCommand(pipeTriggerCmd.NewCmdTrigger(f))
+	ciCmd.AddCommand(jobPlayCmd.NewCmdTrigger(f))
+	ciCmd.AddCommand(pipeRunTrigCmd.NewCmdRunTrig(f))
 	ciCmd.AddCommand(jobArtifactCmd.NewCmdRun(f))
 	ciCmd.AddCommand(pipeGetCmd.NewCmdGet(f))
+	ciCmd.AddCommand(ciConfigCmd.NewCmdConfig(f))
+
 	return ciCmd
 }
