@@ -8,7 +8,7 @@ import (
 
 	"gitlab.com/gitlab-org/cli/pkg/iostreams"
 
-	"github.com/MakeNowJust/heredoc"
+	"github.com/MakeNowJust/heredoc/v2"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/xanzy/go-gitlab"
@@ -69,8 +69,8 @@ func TestMrApprove(t *testing.T) {
 		out := output.String()
 
 		assert.Equal(t, heredoc.Doc(`
-		✓ Pipeline Succeeded
-		✓ Merged
+		✓ Pipeline succeeded.
+		✓ Merged!
 		https://gitlab.com/OWNER/REPO/-/merge_requests/123
 		`), out)
 		assert.Empty(t, output.Stderr())

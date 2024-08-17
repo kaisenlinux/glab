@@ -3,12 +3,11 @@ package commands
 import (
 	"errors"
 
-	"github.com/MakeNowJust/heredoc"
+	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	aliasCmd "gitlab.com/gitlab-org/cli/commands/alias"
 	apiCmd "gitlab.com/gitlab-org/cli/commands/api"
-	askCmd "gitlab.com/gitlab-org/cli/commands/ask"
 	authCmd "gitlab.com/gitlab-org/cli/commands/auth"
 	changelogCmd "gitlab.com/gitlab-org/cli/commands/changelog"
 	pipelineCmd "gitlab.com/gitlab-org/cli/commands/ci"
@@ -16,6 +15,7 @@ import (
 	"gitlab.com/gitlab-org/cli/commands/cmdutils"
 	completionCmd "gitlab.com/gitlab-org/cli/commands/completion"
 	configCmd "gitlab.com/gitlab-org/cli/commands/config"
+	duoCmd "gitlab.com/gitlab-org/cli/commands/duo"
 	"gitlab.com/gitlab-org/cli/commands/help"
 	incidentCmd "gitlab.com/gitlab-org/cli/commands/incident"
 	issueCmd "gitlab.com/gitlab-org/cli/commands/issue"
@@ -27,6 +27,7 @@ import (
 	scheduleCmd "gitlab.com/gitlab-org/cli/commands/schedule"
 	snippetCmd "gitlab.com/gitlab-org/cli/commands/snippet"
 	sshCmd "gitlab.com/gitlab-org/cli/commands/ssh-key"
+	stackCmd "gitlab.com/gitlab-org/cli/commands/stack"
 	updateCmd "gitlab.com/gitlab-org/cli/commands/update"
 	userCmd "gitlab.com/gitlab-org/cli/commands/user"
 	variableCmd "gitlab.com/gitlab-org/cli/commands/variable"
@@ -86,7 +87,7 @@ func NewCmdRoot(f *cmdutils.Factory, version, buildDate string) *cobra.Command {
 	rootCmd.SetOut(f.IO.StdOut)
 	rootCmd.SetErr(f.IO.StdErr)
 
-	rootCmd.PersistentFlags().Bool("help", false, "Show help for command")
+	rootCmd.PersistentFlags().Bool("help", false, "Show help for this command.")
 	rootCmd.SetHelpFunc(func(command *cobra.Command, args []string) {
 		help.RootHelpFunc(f.IO.Color(), command, args)
 	})
@@ -130,7 +131,8 @@ func NewCmdRoot(f *cmdutils.Factory, version, buildDate string) *cobra.Command {
 	rootCmd.AddCommand(apiCmd.NewCmdApi(f, nil))
 	rootCmd.AddCommand(scheduleCmd.NewCmdSchedule(f))
 	rootCmd.AddCommand(snippetCmd.NewCmdSnippet(f))
-	rootCmd.AddCommand(askCmd.NewCmd(f))
+	rootCmd.AddCommand(duoCmd.NewCmdDuo(f))
+	rootCmd.AddCommand(stackCmd.NewCmdStack(f))
 
 	rootCmd.Flags().BoolP("version", "v", false, "show glab version information")
 	return rootCmd

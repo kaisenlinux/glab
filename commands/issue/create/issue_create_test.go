@@ -53,7 +53,7 @@ func TestIssueCreateWhenIssuesDisabled(t *testing.T) {
 	}
 	defer fakeHTTP.Verify(t)
 
-	fakeHTTP.RegisterResponder(http.MethodGet, "/api/v4/projects/OWNER/REPO?license=true&statistics=true&with_custom_attributes=true",
+	fakeHTTP.RegisterResponder(http.MethodGet, "/api/v4/projects/OWNER/REPO?license=true&with_custom_attributes=true",
 		httpmock.NewStringResponse(http.StatusOK, `{
 							  "id": 37777023,
 							  "description": "this is a test description",
@@ -75,6 +75,6 @@ func TestIssueCreateWhenIssuesDisabled(t *testing.T) {
 	assert.NotNil(t, err)
 	assert.Empty(t, output.String())
 	assert.Equal(t, "Issues are disabled for project \"OWNER/REPO\" or require project membership. "+
-		"Please ensure issues are enabled for the \"OWNER/REPO\" project, and if required, you are a member of the project.\n",
+		"Make sure issues are enabled for the \"OWNER/REPO\" project, and if required, you are a member of the project.\n",
 		output.Stderr())
 }

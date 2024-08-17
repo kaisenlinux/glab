@@ -11,7 +11,7 @@ import (
 
 	"gitlab.com/gitlab-org/cli/commands/cmdtest"
 
-	"github.com/MakeNowJust/heredoc"
+	"github.com/MakeNowJust/heredoc/v2"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/xanzy/go-gitlab"
@@ -130,7 +130,7 @@ func TestMergeRequestList_tty(t *testing.T) {
 	}
 
 	assert.Equal(t, heredoc.Doc(`
-		Showing 2 open merge requests on OWNER/REPO (Page 1)
+		Showing 2 open merge requests on OWNER/REPO. (Page 1)
 
 		!6	OWNER/REPO/merge_requests/6	MergeRequest one	(master) ← (test1)
 		!7	OWNER/REPO/merge_requests/7	MergeRequest two	(master) ← (test2)
@@ -156,7 +156,7 @@ func TestMergeRequestList_tty_withFlags(t *testing.T) {
 		}
 
 		cmdtest.Eq(t, output.Stderr(), "")
-		cmdtest.Eq(t, output.String(), `No open merge requests match your search in OWNER/REPO
+		cmdtest.Eq(t, output.String(), `No open merge requests match your search in OWNER/REPO.
 
 
 `)
@@ -174,7 +174,7 @@ func TestMergeRequestList_tty_withFlags(t *testing.T) {
 		}
 
 		cmdtest.Eq(t, output.Stderr(), "")
-		cmdtest.Eq(t, output.String(), `No open merge requests available on GROUP
+		cmdtest.Eq(t, output.String(), `No open merge requests available on GROUP.
 
 `)
 	})

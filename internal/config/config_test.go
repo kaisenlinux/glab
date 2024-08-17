@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/MakeNowJust/heredoc"
+	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/zalando/go-keyring"
@@ -20,6 +20,9 @@ func Test_configLock(t *testing.T) {
 	require.NoError(t, err)
 
 	configLockPath := filepath.Join("config.yaml.lock")
+
+	err = os.Chmod(configLockPath, 0o600)
+	require.NoError(t, err)
 
 	expected, yml, err := ParseConfigFile(configLockPath)
 	require.NoError(t, err)

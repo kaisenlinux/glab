@@ -52,7 +52,6 @@ Run `glab --help` to view a list of core commands in your terminal.
 
 - [`glab alias`](docs/source/alias)
 - [`glab api`](docs/source/api)
-- [`glab ask`](docs/source/ask)
 - [`glab auth`](docs/source/auth)
 - [`glab changelog`](docs/source/changelog)
 - [`glab check-update`](docs/source/check-update)
@@ -60,6 +59,7 @@ Run `glab --help` to view a list of core commands in your terminal.
 - [`glab cluster`](docs/source/cluster)
 - [`glab completion`](docs/source/completion)
 - [`glab config`](docs/source/config)
+- [`glab duo`](docs/source/duo)
 - [`glab incident`](docs/source/incident)
 - [`glab issue`](docs/source/issue)
 - [`glab label`](docs/source/label)
@@ -69,6 +69,7 @@ Run `glab --help` to view a list of core commands in your terminal.
 - [`glab schedule`](docs/source/schedule)
 - [`glab snippet`](docs/source/snippet)
 - [`glab ssh-key`](docs/source/ssh-key)
+- [`glab stack`](docs/source/stack)
 - [`glab user`](docs/source/user)
 - [`glab variable`](docs/source/variable)
 
@@ -85,13 +86,13 @@ Many core commands also have sub-commands. Some examples:
 - Approve a merge request: `glab mr approve 235`
 - Create an issue, and add milestone, title, and label: `glab issue create -m release-2.0.0 -t "My title here" --label important`
 
-### GitLab Duo commands
+### GitLab Duo for the CLI
 
 The GitLab CLI also provides support for GitLab Duo AI/ML powered features. These include:
 
-- [`glab ask`](docs/source/ask)
+- [`glab duo ask`](docs/source/duo/ask.md)
 
-Use `glab ask` to ask questions about `git` commands. It can help you remember a
+Use `glab duo ask` to ask questions about `git` commands. It can help you remember a
 command you forgot, or provide suggestions on how to run commands to perform other tasks.
 
 ## Demo
@@ -126,11 +127,11 @@ If a supported binary for your OS is not found at the [releases page](https://gi
 #### Prerequisites for building from source
 
 - `make`
-- Go 1.21+
+- Go 1.22+
 
 To build from source:
 
-1. Run the command `go version` to verify that Go version 1.21 or later is installed.
+1. Run the command `go version` to verify that Go version 1.22 or later is installed.
    If `go` is not installed, follow instructions on [the Go website](https://go.dev/doc/install).
 1. Run the `go install gitlab.com/gitlab-org/cli/cmd/glab@main` to install `glab` cmd in `$GOPATH/bin`.
 1. The sources of `glab` will be in `$GOPATH/src/gitlab.com/gitlab-org/cli`.
@@ -159,7 +160,7 @@ Prerequisites:
   have its application ID. For instructions, see how to configure GitLab
   [as an OAuth 2.0 authentication identity provider](https://docs.gitlab.com/ee/integration/oauth_provider.html)
   in the GitLab documentation.
-- Your OAuth application is configured with these parameters: 
+- Your OAuth application is configured with these parameters:
   - **Redirect URI** is `http://localhost:7171/auth/redirect`.
   - **Confidential** is not selected.
   - **Scopes** are `openid`, `profile`, `read_user`, `write_repository`, and `api`.
@@ -181,7 +182,7 @@ To authenticate your installation of `glab` with a personal access token:
 
 1. Get a GitLab personal access token with at least the `api`
    and `write_repository` scopes. Use the method appropriate for your instance:
-   - For GitLab.com, create one at the [Personal access tokens](https://gitlab.com/-/profile/personal_access_tokens?scopes=api,write_repository) page.
+   - For GitLab.com, create one at the [Personal access tokens](https://gitlab.com/-/user_settings/personal_access_tokens?scopes=api%2Cwrite_repository) page.
    - For self-managed instances, visit `https://gitlab.example.com/-/profile/personal_access_tokens?scopes=api,write_repository`,
      modifying `gitlab.example.com` to match the domain name of your instance.
 1. Start interactive setup: `glab auth login`

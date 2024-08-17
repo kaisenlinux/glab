@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/MakeNowJust/heredoc"
+	"github.com/MakeNowJust/heredoc/v2"
 
 	"github.com/stretchr/testify/assert"
 	"gitlab.com/gitlab-org/cli/commands/cmdtest"
@@ -71,7 +71,7 @@ func TestCiList(t *testing.T) {
 	out = timeRE.ReplaceAllString(out, "X years")
 
 	assert.Equal(t, heredoc.Doc(`
-		Showing 2 pipelines on OWNER/REPO (Page 1)
+		Showing 2 pipelines on OWNER/REPO. (Page 1)
 
 		(success) • #1	(#3)	refs/merge-requests/1107/merge	(about X years ago)
 		(success) • #2	(#4)	main	(about X years ago)

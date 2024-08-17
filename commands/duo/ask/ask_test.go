@@ -1,4 +1,4 @@
-package git
+package ask
 
 import (
 	"net/http"
@@ -20,16 +20,14 @@ func runCommand(rt http.RoundTripper, isTTY bool, args string) (*test.CmdOut, er
 
 	_, _ = factory.HttpClient()
 
-	cmd := NewCmd(factory)
+	cmd := NewCmdAsk(factory)
 
 	return cmdtest.ExecuteCommand(cmd, args, stdout, stderr)
 }
 
-func TestGitCmd(t *testing.T) {
+func TestAskCmd(t *testing.T) {
 	initialAiResponse := "The appropriate ```git log --pretty=format:'%h'``` Git command ```non-git cmd``` for listing ```git show``` commit SHAs."
-	outputWithoutExecution := "Experiment:\n" + experimentMsg + `
-Commands:
-
+	outputWithoutExecution := "Commands:\n" + `
 git log --pretty=format:'%h'
 non-git cmd
 git show
@@ -65,7 +63,7 @@ The appropriate git log --pretty=format:'%h' Git command non-git cmd for listing
 			desc:           "no commands",
 			content:        "There are no Git commands related to the text.",
 			withPrompt:     false,
-			expectedResult: "Experiment:\n" + experimentMsg + "\nCommands:\n\n\nExplanation:\n\nThere are no Git commands related to the text.\n\n",
+			expectedResult: "Commands:\n\n\nExplanation:\n\nThere are no Git commands related to the text.\n\n",
 		},
 	}
 	cmdLogResult := "git log executed"

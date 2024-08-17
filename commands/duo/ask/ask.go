@@ -1,4 +1,4 @@
-package git
+package ask
 
 import (
 	"fmt"
@@ -12,7 +12,7 @@ import (
 	"gitlab.com/gitlab-org/cli/pkg/iostreams"
 	"gitlab.com/gitlab-org/cli/pkg/prompt"
 
-	"github.com/MakeNowJust/heredoc"
+	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/google/shlex"
 	"github.com/spf13/cobra"
 	"github.com/xanzy/go-gitlab"
@@ -40,6 +40,7 @@ type opts struct {
 	Prompt     string
 	IO         *iostreams.IOStreams
 	HttpClient func() (*gitlab.Client, error)
+	Git        bool
 }
 
 var (
@@ -49,37 +50,36 @@ var (
 )
 
 const (
-	runCmdsQuestion   = "Would you like to run these Git commands"
+	runCmdsQuestion   = "Would you like to run these Git commands?"
 	gitCmd            = "git"
 	gitCmdAPIPath     = "ai/llm/git_command"
 	spinnerText       = "Generating Git commands..."
-	aiResponseErr     = "Error: AI response has not been generated correctly"
-	apiUnreachableErr = "Error: API is unreachable"
-	experimentMsg     = "AI generated these responses. Leave feedback: https://gitlab.com/gitlab-org/gitlab/-/issues/409636\n"
+	aiResponseErr     = "Error: AI response has not been generated correctly."
+	apiUnreachableErr = "Error: API is unreachable."
 )
 
-func NewCmd(f *cmdutils.Factory) *cobra.Command {
+func NewCmdAsk(f *cmdutils.Factory) *cobra.Command {
 	opts := &opts{
 		IO:         f.IO,
 		HttpClient: f.HttpClient,
 	}
 
-	cmd := &cobra.Command{
-		Use:   "git <prompt>",
-		Short: "Generate Git commands from natural language (Experimental).",
+	duoAskCmd := &cobra.Command{
+		Use:   "ask <prompt>",
+		Short: "Generate Git commands from natural language.",
 		Long: heredoc.Doc(`
 			Generate Git commands from natural language.
-
-			This experimental feature converts natural language descriptions into
-			executable Git commands.
-
-			We'd love your feedback in [issue 409636](https://gitlab.com/gitlab-org/gitlab/-/issues/409636).
 		`),
 		Example: heredoc.Doc(`
-			$ glab ask git list last 10 commit titles
+			$ glab duo ask list last 10 commit titles
+
 			# => A list of Git commands to show the titles of the latest 10 commits with an explanation and an option to execute the commands.
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			if !opts.Git {
+				return nil
+			}
+
 			if len(args) == 0 {
 				return nil
 			}
@@ -102,7 +102,9 @@ func NewCmd(f *cmdutils.Factory) *cobra.Command {
 		},
 	}
 
-	return cmd
+	duoAskCmd.Flags().BoolVarP(&opts.Git, "git", "", true, "Ask a question about Git.")
+
+	return duoAskCmd
 }
 
 func (opts *opts) Result() (*result, error) {
@@ -111,13 +113,13 @@ func (opts *opts) Result() (*result, error) {
 
 	client, err := opts.HttpClient()
 	if err != nil {
-		return nil, cmdutils.WrapError(err, "failed to get http client")
+		return nil, cmdutils.WrapError(err, "failed to get HTTP client.")
 	}
 
 	body := request{Prompt: opts.Prompt, Model: vertexAI}
 	request, err := client.NewRequest(http.MethodPost, gitCmdAPIPath, body, nil)
 	if err != nil {
-		return nil, cmdutils.WrapError(err, "failed to create a request")
+		return nil, cmdutils.WrapError(err, "failed to create a request.")
 	}
 
 	var r response
@@ -145,9 +147,6 @@ func (opts *opts) Result() (*result, error) {
 
 func (opts *opts) displayResult(result *result) {
 	color := opts.IO.Color()
-
-	opts.IO.LogInfo(color.Bold("Experiment:"))
-	opts.IO.LogInfo(color.Gray(experimentMsg))
 
 	opts.IO.LogInfo(color.Bold("Commands:\n"))
 

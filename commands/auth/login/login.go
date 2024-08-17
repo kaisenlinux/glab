@@ -13,7 +13,7 @@ import (
 	"gitlab.com/gitlab-org/cli/pkg/iostreams"
 
 	"github.com/AlecAivazis/survey/v2"
-	"github.com/MakeNowJust/heredoc"
+	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/spf13/cobra"
 	"github.com/zalando/go-keyring"
 
@@ -49,7 +49,7 @@ func NewCmdLogin(f *cmdutils.Factory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "login",
 		Args:  cobra.ExactArgs(0),
-		Short: "Authenticate with a GitLab instance",
+		Short: "Authenticate with a GitLab instance.",
 		Long: heredoc.Docf(`
 			Authenticate with a GitLab instance.
 			You can pass in a token on standard input by using %[1]s--stdin%[1]s.
@@ -65,11 +65,11 @@ func NewCmdLogin(f *cmdutils.Factory) *cobra.Command {
 		`, "`"),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			if !opts.IO.PromptEnabled() && !tokenStdin && opts.Token == "" {
-				return &cmdutils.FlagError{Err: errors.New("--stdin or --token required when not running interactively")}
+				return &cmdutils.FlagError{Err: errors.New("'--stdin' or '--token' required when not running interactively.")}
 			}
 
 			if opts.Token != "" && tokenStdin {
-				return &cmdutils.FlagError{Err: errors.New("specify one of --token or --stdin. You cannot use both flags at the same time")}
+				return &cmdutils.FlagError{Err: errors.New("specify one of '--token' or '--stdin'. You cannot use both flags at the same time.")}
 			}
 
 			if tokenStdin {
@@ -87,7 +87,7 @@ func NewCmdLogin(f *cmdutils.Factory) *cobra.Command {
 
 			if cmd.Flags().Changed("hostname") {
 				if err := hostnameValidator(opts.Hostname); err != nil {
-					return &cmdutils.FlagError{Err: fmt.Errorf("error parsing --hostname: %w", err)}
+					return &cmdutils.FlagError{Err: fmt.Errorf("error parsing '--hostname': %w", err)}
 				}
 			}
 
@@ -103,10 +103,10 @@ func NewCmdLogin(f *cmdutils.Factory) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().StringVarP(&opts.Hostname, "hostname", "h", "", "The hostname of the GitLab instance to authenticate with")
-	cmd.Flags().StringVarP(&opts.Token, "token", "t", "", "Your GitLab access token")
-	cmd.Flags().BoolVar(&tokenStdin, "stdin", false, "Read token from standard input")
-	cmd.Flags().BoolVar(&opts.UseKeyring, "use-keyring", false, "Store token in your operating system's keyring")
+	cmd.Flags().StringVarP(&opts.Hostname, "hostname", "h", "", "The hostname of the GitLab instance to authenticate with.")
+	cmd.Flags().StringVarP(&opts.Token, "token", "t", "", "Your GitLab access token.")
+	cmd.Flags().BoolVar(&tokenStdin, "stdin", false, "Read token from standard input.")
+	cmd.Flags().BoolVar(&opts.UseKeyring, "use-keyring", false, "Store token in your operating system's keyring.")
 
 	return cmd
 }
@@ -120,7 +120,7 @@ func loginRun(opts *LoginOptions) error {
 
 	if opts.Token != "" {
 		if opts.Hostname == "" {
-			return errors.New("empty hostname would leak oauth_token")
+			return errors.New("empty hostname would leak `oauth_token`")
 		}
 
 		if opts.UseKeyring {
@@ -132,7 +132,7 @@ func loginRun(opts *LoginOptions) error {
 			}
 
 			if token := config.GetFromEnv("token"); token != "" {
-				fmt.Fprintf(opts.IO.StdErr, "%s a GITLAB_TOKEN or OAUTH_TOKEN environment variable is set. If you don't want to use it for glab, unset it.\n", c.Yellow("WARNING:"))
+				fmt.Fprintf(opts.IO.StdErr, "%s One of %s environment variables is set. If you don't want to use it for glab, unset it.\n", c.Yellow("WARNING:"), strings.Join(config.EnvKeyEquivalence("token"), ", "))
 			}
 
 			return cfg.Write()
@@ -171,7 +171,7 @@ func loginRun(opts *LoginOptions) error {
 			}
 			err = survey.AskOne(&survey.Input{
 				Message: "API hostname:",
-				Help:    "For instances with different hostname for the API endpoint",
+				Help:    "For instances with different hostname for the API endpoint.",
 				Default: hostname,
 			}, &apiHostname, survey.WithValidator(hostnameValidator))
 			if err != nil {
@@ -185,7 +185,7 @@ func loginRun(opts *LoginOptions) error {
 	fmt.Fprintf(opts.IO.StdErr, "- Logging into %s\n", hostname)
 
 	if token := config.GetFromEnv("token"); token != "" {
-		fmt.Fprintf(opts.IO.StdErr, "%s a GITLAB_TOKEN or OAUTH_TOKEN environment variable is set. If you don't want to use it for glab, unset it.\n", c.Yellow("WARNING:"))
+		fmt.Fprintf(opts.IO.StdErr, "%s One of %s environment variables is set. If you don't want to use it for glab, unset it.\n", c.Yellow("WARNING:"), strings.Join(config.EnvKeyEquivalence("token"), ", "))
 	}
 	existingToken, _, _ := cfg.GetWithSource(hostname, "token", false)
 
@@ -257,7 +257,7 @@ func loginRun(opts *LoginOptions) error {
 	}
 
 	if hostname == "" {
-		return errors.New("empty hostname would leak token")
+		return errors.New("empty hostname would leak the token.")
 	}
 
 	err = cfg.Set(hostname, "api_host", apiHostname)
@@ -276,7 +276,7 @@ func loginRun(opts *LoginOptions) error {
 
 	if opts.Interactive {
 		err = survey.AskOne(&survey.Select{
-			Message: "Choose default git protocol",
+			Message: "Choose default Git protocol:",
 			Options: []string{
 				"SSH",
 				"HTTPS",
@@ -297,7 +297,7 @@ func loginRun(opts *LoginOptions) error {
 
 		if isSelfHosted {
 			err = survey.AskOne(&survey.Select{
-				Message: "Choose host API protocol",
+				Message: "Choose host API protocol:",
 				Options: []string{
 					"HTTPS",
 					"HTTP",
@@ -317,7 +317,7 @@ func loginRun(opts *LoginOptions) error {
 			return err
 		}
 
-		fmt.Fprintf(opts.IO.StdErr, "%s Configured git protocol\n", c.GreenCheck())
+		fmt.Fprintf(opts.IO.StdErr, "%s Configured Git protocol.\n", c.GreenCheck())
 
 		fmt.Fprintf(opts.IO.StdErr, "- glab config set -h %s api_protocol %s\n", hostname, apiProtocol)
 		err = cfg.Set(hostname, "api_protocol", apiProtocol)
@@ -325,7 +325,7 @@ func loginRun(opts *LoginOptions) error {
 			return err
 		}
 
-		fmt.Fprintf(opts.IO.StdErr, "%s Configured API protocol\n", c.GreenCheck())
+		fmt.Fprintf(opts.IO.StdErr, "%s Configured API protocol.\n", c.GreenCheck())
 	}
 	apiClient, err := cmdutils.LabClientFunc(hostname, cfg, false)
 	if err != nil {
@@ -334,7 +334,7 @@ func loginRun(opts *LoginOptions) error {
 
 	user, err := api.CurrentUser(apiClient)
 	if err != nil {
-		return fmt.Errorf("error using api: %w", err)
+		return fmt.Errorf("error using API: %w", err)
 	}
 	username := user.Username
 
@@ -363,7 +363,7 @@ func loginRun(opts *LoginOptions) error {
 func hostnameValidator(v interface{}) error {
 	val := fmt.Sprint(v)
 	if len(strings.TrimSpace(val)) < 1 {
-		return errors.New("a value is required")
+		return errors.New("a value is required.")
 	}
 	re := regexp.MustCompile(`^(([a-z0-9]|[a-z0-9][a-z0-9\-]*[a-z0-9])\.)*([a-z0-9]|[a-z0-9][a-z0-9\-]*[a-z0-9])(:[0-9]+)?(/[a-z0-9]*)*$`)
 	if !re.MatchString(val) {
@@ -378,7 +378,7 @@ func getAccessTokenTip(hostname string) string {
 		glHostname = glinstance.OverridableDefault()
 	}
 	return fmt.Sprintf(`
-	Tip: you can generate a Personal Access Token here https://%s/-/profile/personal_access_tokens?scopes=api,write_repository
+	Tip: generate a Personal Access Token at https://%s/-/profile/personal_access_tokens?scopes=api,write_repository.
 	The minimum required scopes are 'api' and 'write_repository'.`, glHostname)
 }
 

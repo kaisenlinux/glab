@@ -5,7 +5,7 @@ import (
 
 	"gitlab.com/gitlab-org/cli/pkg/iostreams"
 
-	"github.com/MakeNowJust/heredoc"
+	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/spf13/cobra"
 	"github.com/xanzy/go-gitlab"
 	"gitlab.com/gitlab-org/cli/commands/cmdutils"
@@ -35,8 +35,8 @@ func NewCmdContributors(f *cmdutils.Factory) *cobra.Command {
 		Example: heredoc.Doc(`
 	$ glab repo contributors
 
+	# Supports overriding the repository.
 	$ glab repo contributors -R gitlab-com/www-gitlab-com
-	# Supports repo override
 	`),
 		Args:    cobra.ExactArgs(0),
 		Aliases: []string{"users"},
@@ -51,9 +51,9 @@ func NewCmdContributors(f *cmdutils.Factory) *cobra.Command {
 
 	cmdutils.EnableRepoOverride(repoContributorsCmd, f)
 
-	repoContributorsCmd.Flags().StringVarP(&opts.OrderBy, "order", "o", "commits", "Return contributors ordered by name, email, or commits (orders by commit date) fields")
-	repoContributorsCmd.Flags().StringVarP(&opts.Sort, "sort", "s", "", "Return contributors sorted in asc or desc order")
-	repoContributorsCmd.Flags().IntVarP(&opts.Page, "page", "p", 1, "Page number")
+	repoContributorsCmd.Flags().StringVarP(&opts.OrderBy, "order", "o", "commits", "Return contributors ordered by name, email, or commits (orders by commit date) fields.")
+	repoContributorsCmd.Flags().StringVarP(&opts.Sort, "sort", "s", "", "Return contributors. Sort options: asc, desc.")
+	repoContributorsCmd.Flags().IntVarP(&opts.Page, "page", "p", 1, "Page number.")
 	repoContributorsCmd.Flags().IntVarP(&opts.PerPage, "per-page", "P", 30, "Number of items to list per page.")
 	return repoContributorsCmd
 }

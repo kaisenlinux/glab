@@ -4,14 +4,14 @@ import (
 	"gitlab.com/gitlab-org/cli/commands/ci/ciutils"
 	"gitlab.com/gitlab-org/cli/commands/cmdutils"
 
-	"github.com/MakeNowJust/heredoc"
+	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/spf13/cobra"
 )
 
 func NewCmdTrace(f *cmdutils.Factory) *cobra.Command {
 	pipelineCITraceCmd := &cobra.Command{
 		Use:   "trace [<job-id>] [flags]",
-		Short: `Trace a CI/CD job log in real time`,
+		Short: `Trace a CI/CD job log in real time.`,
 		Example: heredoc.Doc(`
 	$ glab ci trace
 	# Interactively select a job to trace
@@ -51,7 +51,7 @@ func NewCmdTrace(f *cmdutils.Factory) *cobra.Command {
 		},
 	}
 
-	pipelineCITraceCmd.Flags().StringP("branch", "b", "", "The branch to search for the job. (Default: current branch)")
+	pipelineCITraceCmd.Flags().StringP("branch", "b", "", "The branch to search for the job. Default: current branch.")
 	pipelineCITraceCmd.Flags().IntP("pipeline-id", "p", 0, "The pipeline ID to search for the job.")
 	return pipelineCITraceCmd
 }

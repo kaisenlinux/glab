@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/MakeNowJust/heredoc"
+	"github.com/MakeNowJust/heredoc/v2"
 
 	"github.com/stretchr/testify/assert"
 	"gitlab.com/gitlab-org/cli/commands/cmdtest"
@@ -60,7 +60,7 @@ func TestLabelList(t *testing.T) {
 	out := output.String()
 
 	assert.Equal(t, heredoc.Doc(`
-		Showing label 2 of 2 on OWNER/REPO
+		Showing label 2 of 2 on OWNER/REPO.
 
 		 bug (#6699cc)
 		 ux -> User Experience (#3cb371)

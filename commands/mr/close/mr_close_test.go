@@ -9,7 +9,7 @@ import (
 
 	"gitlab.com/gitlab-org/cli/pkg/iostreams"
 
-	"github.com/MakeNowJust/heredoc"
+	"github.com/MakeNowJust/heredoc/v2"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/xanzy/go-gitlab"
@@ -90,8 +90,8 @@ func TestMrClose(t *testing.T) {
 		out := output.String()
 
 		assert.Equal(t, heredoc.Doc(`
-		- Closing Merge request...
-		✓ Closed Merge request !123
+		- Closing merge request...
+		✓ Closed merge request !123.
 
 		`), out)
 		assert.Empty(t, output.Stderr())

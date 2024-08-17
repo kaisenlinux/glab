@@ -4,8 +4,8 @@ Priority: optional
 Maintainer: Kevin Chevreuil - Kaisen <kaisen@kaisenlinux.org>
 Rules-Requires-Root: no
 Build-Depends:
- debhelper-compat (= 13), golang-go (>= 1.21), dh-golang,
-Standards-Version: 4.6.2
+ debhelper-compat (= 13), golang-go (>= 1.22.5), dh-golang,
+Standards-Version: 4.7.2
 Homepage: https://gitlab.com/gitlab-org/cli
 Vcs-Browser: https://gitlab.com/kaisenlinux/packages/glab
 Vcs-Git: https://gitlab.com/kaisenlinux/packages/glab.git

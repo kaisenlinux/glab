@@ -85,10 +85,14 @@ hosts:
     token: glpat-xxxxxxxxxxxxxxxxxxxx
     git_protocol: ssh
     api_protocol: https
+  gitlab.env.bar:
+    token: glpat-xxxxxxxxxxxxxxxxxxxx
+    git_protocol: ssh
+    api_protocol: https
   another.host:
     token: isinvalid
   gl.io:
-    token: 
+    token:
 `, "")()
 
 	cfgFile := config.ConfigFile()
@@ -98,6 +102,7 @@ hosts:
 	tests := []struct {
 		name    string
 		opts    *StatusOpts
+		envVar  bool
 		wantErr bool
 		stderr  string
 	}{
@@ -110,7 +115,7 @@ hosts:
 			stderr: fmt.Sprintf(`gitlab.alpinelinux.org
   ✓ Logged in to gitlab.alpinelinux.org as john_smith (%s)
   ✓ Git operations for gitlab.alpinelinux.org configured to use ssh protocol.
-  ✓ API calls for gitlab.alpinelinux.org are made over https protocol
+  ✓ API calls for gitlab.alpinelinux.org are made over https protocol.
   ✓ REST API Endpoint: https://gitlab.alpinelinux.org/api/v4/
   ✓ GraphQL Endpoint: https://gitlab.alpinelinux.org/api/graphql/
   ✓ Token: **************************
@@ -125,7 +130,7 @@ hosts:
 			stderr: fmt.Sprintf(`gitlab.foo.bar
   ✓ Logged in to gitlab.foo.bar as john_doe (%s)
   ✓ Git operations for gitlab.foo.bar configured to use ssh protocol.
-  ✓ API calls for gitlab.foo.bar are made over https protocol
+  ✓ API calls for gitlab.foo.bar are made over https protocol.
   ✓ REST API Endpoint: https://gitlab.foo.bar/api/v4/
   ✓ GraphQL Endpoint: https://gitlab.foo.bar/api/graphql/
   ✓ Token: **************************
@@ -137,7 +142,25 @@ hosts:
 				Hostname: "invalid.instance",
 			},
 			wantErr: true,
-			stderr:  "x invalid.instance not authenticated with glab. Run `glab auth login --hostname invalid.instance` to authenticate\n",
+			stderr:  "x invalid.instance has not been authenticated with glab. Run `glab auth login --hostname invalid.instance` to authenticate.",
+		},
+		{
+			name: "with token set in env variable",
+			opts: &StatusOpts{
+				Hostname: "gitlab.env.bar",
+			},
+			envVar:  true,
+			wantErr: false,
+			stderr: fmt.Sprintf(`gitlab.env.bar
+  ✓ Logged in to gitlab.env.bar as john_doe (%s)
+  ✓ Git operations for gitlab.env.bar configured to use ssh protocol.
+  ✓ API calls for gitlab.env.bar are made over https protocol.
+  ✓ REST API Endpoint: https://gitlab.env.bar/api/v4/
+  ✓ GraphQL Endpoint: https://gitlab.env.bar/api/graphql/
+  ✓ Token: **************************
+
+! One of GITLAB_TOKEN, GITLAB_ACCESS_TOKEN, OAUTH_TOKEN environment variables is set. It will be used for all authentication.
+`, cfgFile),
 		},
 	}
 
@@ -152,6 +175,11 @@ hosts:
 		}
 	`))
 	fakeHTTP.RegisterResponder(http.MethodGet, "https://gitlab.foo.bar/api/v4/user", httpmock.NewStringResponse(http.StatusOK, `
+		{
+  			"username": "john_doe"
+		}
+	`))
+	fakeHTTP.RegisterResponder(http.MethodGet, "https://gitlab.env.bar/api/v4/user", httpmock.NewStringResponse(http.StatusOK, `
 		{
   			"username": "john_doe"
 		}
@@ -171,11 +199,26 @@ hosts:
 		tt.opts.IO = io
 		tt.opts.HttpClientOverride = client
 		t.Run(tt.name, func(t *testing.T) {
-			if err := statusRun(tt.opts); (err != nil) != tt.wantErr {
+			if tt.envVar {
+				t.Setenv("GITLAB_TOKEN", "foo")
+			} else {
+				t.Setenv("GITLAB_TOKEN", "")
+			}
+
+			err := statusRun(tt.opts)
+			if (err != nil) != tt.wantErr {
 				t.Errorf("statusRun() error = %v, wantErr %v", err, tt.wantErr)
 			}
+
 			assert.Equal(t, stdout.String(), "")
-			assert.Equal(t, tt.stderr, stderr.String())
+
+			if tt.wantErr {
+				assert.NotNil(t, err)
+				assert.Equal(t, tt.stderr, err.Error())
+			} else {
+				assert.Nil(t, err)
+				assert.Equal(t, tt.stderr, stderr.String())
+			}
 		})
 	}
 }
@@ -190,7 +233,7 @@ hosts:
   another.host:
     token: isinvalid
   gl.io:
-    token: 
+    token:
 `, "")()
 
 	fakeHTTP := &httpmock.Mocker{
@@ -221,27 +264,28 @@ hosts:
 	expectedOutput := fmt.Sprintf(`gitlab.alpinelinux.org
   ✓ Logged in to gitlab.alpinelinux.org as john_smith (%s)
   ✓ Git operations for gitlab.alpinelinux.org configured to use ssh protocol.
-  ✓ API calls for gitlab.alpinelinux.org are made over https protocol
+  ✓ API calls for gitlab.alpinelinux.org are made over https protocol.
   ✓ REST API Endpoint: https://gitlab.alpinelinux.org/api/v4/
   ✓ GraphQL Endpoint: https://gitlab.alpinelinux.org/api/graphql/
   ✓ Token: **************************
 another.host
-  x another.host: api call failed: GET https://another.host/api/v4/user: 401 {message: invalid token}
+  x another.host: API call failed: GET https://another.host/api/v4/user: 401 {message: invalid token}
   ✓ Git operations for another.host configured to use ssh protocol.
-  ✓ API calls for another.host are made over https protocol
+  ✓ API calls for another.host are made over https protocol.
   ✓ REST API Endpoint: https://another.host/api/v4/
   ✓ GraphQL Endpoint: https://another.host/api/graphql/
   ✓ Token: **************************
-  ! Invalid token provided
+  ! Invalid token provided in configuration file.
 gl.io
-  x gl.io: api call failed: GET https://gl.io/api/v4/user: 401 {message: no token provided}
+  x gl.io: API call failed: GET https://gl.io/api/v4/user: 401 {message: no token provided}
   ✓ Git operations for gl.io configured to use ssh protocol.
-  ✓ API calls for gl.io are made over https protocol
+  ✓ API calls for gl.io are made over https protocol.
   ✓ REST API Endpoint: https://gl.io/api/v4/
   ✓ GraphQL Endpoint: https://gl.io/api/graphql/
-  x No token provided
+  ! No token provided in configuration file.
 `, cfgFile)
 
+	t.Setenv("GITLAB_TOKEN", "")
 	configs, err := config.ParseConfig("config.yml")
 	assert.Nil(t, err)
 	io, _, stdout, stderr := iostreams.Test()
@@ -261,8 +305,8 @@ gl.io
 	}
 
 	err = statusRun(opts)
-	assert.Equal(t, err, nil)
-	assert.Equal(t, stdout.String(), "")
+	assert.Equal(t, "\nx could not authenticate to one or more of the configured GitLab instances.", err.Error())
+	assert.Empty(t, stdout.String())
 	assert.Equal(t, expectedOutput, stderr.String())
 }
 
@@ -273,7 +317,7 @@ git_protocol: ssh
 
 	configs, err := config.ParseConfig("config.yml")
 	assert.Nil(t, err)
-	io, _, stdout, stderr := iostreams.Test()
+	io, _, stdout, _ := iostreams.Test()
 
 	opts := &StatusOpts{
 		Config: func() (config.Config, error) {
@@ -283,8 +327,7 @@ git_protocol: ssh
 	}
 	t.Run("no instance authenticated", func(t *testing.T) {
 		err := statusRun(opts)
-		assert.Equal(t, err, cmdutils.SilentError)
-		assert.Equal(t, stdout.String(), "")
-		assert.Equal(t, "No GitLab instance has been authenticated with glab. Run `glab auth login` to authenticate.\n", stderr.String())
+		assert.Equal(t, "No GitLab instances have been authenticated with glab. Run `glab auth login` to authenticate.\n", err.Error())
+		assert.Empty(t, stdout.String())
 	})
 }

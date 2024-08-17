@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/MakeNowJust/heredoc"
+	"github.com/MakeNowJust/heredoc/v2"
 
 	"github.com/stretchr/testify/assert"
 	"gitlab.com/gitlab-org/cli/pkg/httpmock"
@@ -50,11 +50,11 @@ func TestProjectContributors(t *testing.T) {
 				http.StatusOK,
 				"testdata/contributors.json",
 			},
-			expectedOutput: heredoc.Doc(`Showing 2 contributors on OWNER/REPO (Page 1)
-															
+			expectedOutput: heredoc.Doc(`Showing 2 contributors on OWNER/REPO. (Page 1)
+
 															Test User	tu@gitlab.com	41 commits
 															Test User2	tu2@gitlab.com	12 commits
-															
+
 															`),
 		},
 		{
@@ -66,11 +66,11 @@ func TestProjectContributors(t *testing.T) {
 				http.StatusOK,
 				"testdata/contributors.json",
 			},
-			expectedOutput: heredoc.Doc(`Showing 2 contributors on foo/bar (Page 1)
-															
+			expectedOutput: heredoc.Doc(`Showing 2 contributors on foo/bar. (Page 1)
+
 															Test User	tu@gitlab.com	41 commits
 															Test User2	tu2@gitlab.com	12 commits
-															
+
 															`),
 		},
 		{
@@ -82,11 +82,11 @@ func TestProjectContributors(t *testing.T) {
 				http.StatusOK,
 				"testdata/contributors.json",
 			},
-			expectedOutput: heredoc.Doc(`Showing 2 contributors on OWNER/REPO (Page 1)
-															
+			expectedOutput: heredoc.Doc(`Showing 2 contributors on OWNER/REPO. (Page 1)
+
 															Test User	tu@gitlab.com	41 commits
 															Test User2	tu2@gitlab.com	12 commits
-															
+
 															`),
 		},
 	}

@@ -15,6 +15,8 @@ import (
 	"gitlab.com/gitlab-org/cli/internal/run"
 )
 
+const DefaultRemote = "origin"
+
 func GetRemoteURL(remoteAlias string) (string, error) {
 	return Config("remote." + remoteAlias + ".url")
 }
@@ -48,8 +50,8 @@ func GetDefaultBranch(remote string) (string, error) {
 	return headBranch, err
 }
 
-// ErrNotOnAnyBranch indicates that the users is in detached HEAD state
-var ErrNotOnAnyBranch = errors.New("git: not on any branch")
+// ErrNotOnAnyBranch indicates that the user is in detached HEAD state
+var ErrNotOnAnyBranch = errors.New("you're not on any Git branch (a 'detached HEAD' state).")
 
 // Ref represents a git commit reference
 type Ref struct {
@@ -149,6 +151,16 @@ func UncommittedChangeCount() (int, error) {
 	return count, nil
 }
 
+func GitUserName() ([]byte, error) {
+	nameGrab := GitCommand("config", "user.name")
+	output, err := run.PrepareCmd(nameGrab).Output()
+	if err != nil {
+		return []byte{}, err
+	}
+
+	return output, nil
+}
+
 type Commit struct {
 	Sha   string
 	Title string
@@ -163,7 +175,7 @@ func LatestCommit(ref string) (*Commit, error) {
 	commit := &Commit{}
 	split := strings.SplitN(string(output), " ", 2)
 	if len(split) != 2 {
-		return commit, fmt.Errorf("could not find commit for %s", ref)
+		return commit, fmt.Errorf("could not find commit for %s.", ref)
 	}
 	commit = &Commit{
 		Sha:   split[0],
@@ -197,7 +209,7 @@ func Commits(baseRef, headRef string) ([]*Commit, error) {
 	}
 
 	if len(commits) == 0 {
-		return commits, fmt.Errorf("could not find any commits between %s and %s", baseRef, headRef)
+		return commits, fmt.Errorf("could not find any commits between %s and %s.", baseRef, headRef)
 	}
 
 	return commits, nil
@@ -280,6 +292,12 @@ func HasLocalBranch(branch string) bool {
 
 func CheckoutBranch(branch string) error {
 	configCmd := GitCommand("checkout", branch)
+	err := run.PrepareCmd(configCmd).Run()
+	return err
+}
+
+func CheckoutNewBranch(branch string) error {
+	configCmd := GitCommand("checkout", "-b", branch)
 	err := run.PrepareCmd(configCmd).Run()
 	return err
 }
@@ -532,13 +550,13 @@ func GetAllConfig(key string) ([]byte, error) {
 	if errors.As(err, &cmdErr) && cmdErr.Stderr.Len() == 0 {
 		return nil, nil
 	}
-	return nil, fmt.Errorf("getting git config value cmd: %s: %w", gitCmd.String(), err)
+	return nil, fmt.Errorf("getting Git configuration value cmd: %s: %w", gitCmd.String(), err)
 }
 
 func assertValidConfigKey(key string) error {
 	s := strings.Split(key, ".")
 	if len(s) < 2 {
-		return fmt.Errorf("incorrect git config key")
+		return fmt.Errorf("incorrect Git configuration key.")
 	}
 	return nil
 }

@@ -6,7 +6,7 @@ import (
 
 	"gitlab.com/gitlab-org/cli/commands/cmdtest"
 
-	"github.com/MakeNowJust/heredoc"
+	"github.com/MakeNowJust/heredoc/v2"
 
 	"github.com/stretchr/testify/assert"
 	"gitlab.com/gitlab-org/cli/pkg/httpmock"
@@ -70,8 +70,8 @@ func TestMrRevoke(t *testing.T) {
 			},
 
 			expectedOut: heredoc.Doc(`
-				- Revoking approval for Merge Request !123...
-				✓ Merge Request approval revoked
+				- Revoking approval for merge request !123...
+				✓ Merge request approval revoked.
 				`),
 		},
 		{
@@ -113,8 +113,8 @@ func TestMrRevoke(t *testing.T) {
 			},
 
 			expectedOut: heredoc.Doc(`
-				- Revoking approval for Merge Request !123...
-				✓ Merge Request approval revoked
+				- Revoking approval for merge request !123...
+				✓ Merge request approval revoked.
 				`),
 		},
 	}

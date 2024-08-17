@@ -1,7 +1,7 @@
 package mr
 
 import (
-	"github.com/MakeNowJust/heredoc"
+	"github.com/MakeNowJust/heredoc/v2"
 	"gitlab.com/gitlab-org/cli/commands/cmdutils"
 	mrApproveCmd "gitlab.com/gitlab-org/cli/commands/mr/approve"
 	mrApproversCmd "gitlab.com/gitlab-org/cli/commands/mr/approvers"
@@ -30,7 +30,7 @@ import (
 func NewCmdMR(f *cmdutils.Factory) *cobra.Command {
 	mrCmd := &cobra.Command{
 		Use:   "mr <command> [flags]",
-		Short: `Create, view and manage merge requests`,
+		Short: `Create, view, and manage merge requests.`,
 		Long:  ``,
 		Example: heredoc.Doc(`
 			glab mr create --fill --label bugfix

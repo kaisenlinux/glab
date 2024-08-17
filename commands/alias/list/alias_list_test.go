@@ -10,7 +10,7 @@ import (
 	"gitlab.com/gitlab-org/cli/commands/cmdutils"
 	"gitlab.com/gitlab-org/cli/internal/config"
 
-	"github.com/MakeNowJust/heredoc"
+	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -28,7 +28,7 @@ func TestAliasList(t *testing.T) {
 			config:     "",
 			wantStdout: "",
 			isaTTy:     true,
-			wantStderr: "no aliases configured\n",
+			wantStderr: "no aliases configured.\n",
 		},
 		{
 			name: "some",

@@ -5,18 +5,18 @@ import (
 	"fmt"
 	"net/url"
 
-	"gitlab.com/gitlab-org/cli/pkg/iostreams"
-
-	"github.com/MakeNowJust/heredoc"
-	"github.com/spf13/cobra"
-	"github.com/xanzy/go-gitlab"
 	"gitlab.com/gitlab-org/cli/api"
 	"gitlab.com/gitlab-org/cli/commands/cmdutils"
 	"gitlab.com/gitlab-org/cli/internal/config"
 	"gitlab.com/gitlab-org/cli/internal/glrepo"
 	"gitlab.com/gitlab-org/cli/internal/run"
 	"gitlab.com/gitlab-org/cli/pkg/git"
+	"gitlab.com/gitlab-org/cli/pkg/iostreams"
 	"gitlab.com/gitlab-org/cli/pkg/prompt"
+
+	"github.com/MakeNowJust/heredoc/v2"
+	"github.com/spf13/cobra"
+	"github.com/xanzy/go-gitlab"
 )
 
 type ForkOptions struct {
@@ -53,7 +53,7 @@ func NewCmdFork(f *cmdutils.Factory, runE func(*cmdutils.Factory) error) *cobra.
 	}
 	forkCmd := &cobra.Command{
 		Use:   "fork <repo>",
-		Short: "Create a fork of a GitLab repository",
+		Short: "Fork a GitLab repository.",
 		Example: heredoc.Doc(`
 			glab repo fork
 			glab repo fork namespace/repo
@@ -86,10 +86,10 @@ func NewCmdFork(f *cmdutils.Factory, runE func(*cmdutils.Factory) error) *cobra.
 		},
 	}
 
-	forkCmd.Flags().StringVarP(&opts.Name, "name", "n", "", "The name assigned to the resultant project after forking")
-	forkCmd.Flags().StringVarP(&opts.Path, "path", "p", "", "The path assigned to the resultant project after forking")
-	forkCmd.Flags().BoolVarP(&opts.Clone, "clone", "c", false, "Clone the fork {true|false}")
-	forkCmd.Flags().BoolVar(&opts.AddRemote, "remote", false, "Add remote for fork {true|false}")
+	forkCmd.Flags().StringVarP(&opts.Name, "name", "n", "", "The name assigned to the new project after forking.")
+	forkCmd.Flags().StringVarP(&opts.Path, "path", "p", "", "The path assigned to the new project after forking.")
+	forkCmd.Flags().BoolVarP(&opts.Clone, "clone", "c", false, "Clone the fork. Options: true, false.")
+	forkCmd.Flags().BoolVar(&opts.AddRemote, "remote", false, "Add a remote for the fork. Options: true, false.")
 
 	return forkCmd
 }
@@ -165,7 +165,7 @@ loop:
 				if retries == maximumRetries {
 					break loop
 				}
-				fmt.Fprintln(opts.IO.StdErr, "- Retrying")
+				fmt.Fprintln(opts.IO.StdErr, "- Retrying...")
 				retries++
 				continue
 			}
@@ -200,7 +200,7 @@ loop:
 		return nil
 	}
 
-	fmt.Fprintf(opts.IO.StdErr, "%s Created fork %s\n", c.GreenCheck(), forkedProject.PathWithNamespace)
+	fmt.Fprintf(opts.IO.StdErr, "%s Created fork %s.\n", c.GreenCheck(), forkedProject.PathWithNamespace)
 
 	if (!opts.IsTerminal && opts.CurrentDirIsParent && (!opts.AddRemote && opts.AddRemoteSet)) ||
 		(!opts.CurrentDirIsParent && (!opts.Clone && opts.AddRemoteSet)) {
@@ -233,7 +233,7 @@ loop:
 
 		if remote, err := remotes.FindByRepo(forkedProject.Namespace.FullPath, forkedProject.Path); err == nil {
 			if opts.IsTerminal {
-				fmt.Fprintf(opts.IO.StdErr, "%s Using existing remote %s\n", c.GreenCheck(), c.Bold(remote.Name))
+				fmt.Fprintf(opts.IO.StdErr, "%s Using existing remote %s.\n", c.GreenCheck(), c.Bold(remote.Name))
 			}
 			return nil
 		}
@@ -272,12 +272,17 @@ loop:
 			}
 
 			if opts.IsTerminal {
-				fmt.Fprintf(opts.IO.StdErr, "%s Added remote %s\n", c.GreenCheck(), c.Bold(remoteName))
+				fmt.Fprintf(opts.IO.StdErr, "%s Added remote %s.\n", c.GreenCheck(), c.Bold(remoteName))
 			}
 		}
 	} else {
 		cloneDesired := opts.Clone
-		if !opts.AddRemoteSet {
+		if !cloneDesired {
+			// If clone is explicitly set to false exit
+			if opts.CloneSet {
+				return nil
+			}
+
 			err = prompt.Confirm(&cloneDesired, "Would you like to clone the fork?", true)
 			if err != nil {
 				return fmt.Errorf("failed to prompt: %w", err)
@@ -304,7 +309,7 @@ loop:
 			}
 
 			if opts.IsTerminal {
-				fmt.Fprintf(opts.IO.StdErr, "%s Cloned fork\n", c.GreenCheck())
+				fmt.Fprintf(opts.IO.StdErr, "%s Cloned fork.\n", c.GreenCheck())
 			}
 		}
 	}

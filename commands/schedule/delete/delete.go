@@ -8,7 +8,7 @@ import (
 	"gitlab.com/gitlab-org/cli/commands/cmdutils"
 	"gitlab.com/gitlab-org/cli/pkg/iostreams"
 
-	"github.com/MakeNowJust/heredoc"
+	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/spf13/cobra"
 )
 
@@ -23,7 +23,7 @@ func NewCmdDelete(f *cmdutils.Factory) *cobra.Command {
 	}
 	scheduleDeleteCmd := &cobra.Command{
 		Use:   "delete [flags]",
-		Short: `Delete schedule with the specified ID.`,
+		Short: `Delete the schedule with the specified ID.`,
 		Example: heredoc.Doc(`
 			glab schedule delete 10
 		`),
