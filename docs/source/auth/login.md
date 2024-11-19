@@ -18,6 +18,7 @@ Authenticate with a GitLab instance.
 Authenticate with a GitLab instance.
 You can pass in a token on standard input by using `--stdin`.
 The minimum required scopes for the token are: `api`, `write_repository`.
+Configuration and credentials are stored in the global configuration file (Default: `~/.config/glab-cli/config.yml`)
 
 ```plaintext
 glab auth login [flags]
@@ -26,22 +27,33 @@ glab auth login [flags]
 ## Examples
 
 ```plaintext
-# start interactive setup
+# Start interactive setup
 $ glab auth login
-# authenticate against `gitlab.com` by reading the token from a file
+
+# Authenticate against `gitlab.com` by reading the token from a file
 $ glab auth login --stdin < myaccesstoken.txt
-# authenticate with a self-hosted GitLab instance
+
+# Authenticate with a self-hosted GitLab instance
 $ glab auth login --hostname salsa.debian.org
+
+# Non-interactive setup
+$ glab auth login --hostname gitlab.example.org --token glpat-xxx --api-host gitlab.example.org:3443 --api-protocol https --git-protocol ssh
+
+# Non-interactive setup reading token from a file
+$ glab auth login --hostname gitlab.example.org --api-host gitlab.example.org:3443 --api-protocol https --git-protocol ssh  --stdin < myaccesstoken.txt
 
 ```
 
 ## Options
 
 ```plaintext
-  -h, --hostname string   The hostname of the GitLab instance to authenticate with.
-      --stdin             Read token from standard input.
-  -t, --token string      Your GitLab access token.
-      --use-keyring       Store token in your operating system's keyring.
+  -a, --api-host string       API host url.
+  -p, --api-protocol string   API protocol: https, http
+  -g, --git-protocol string   Git protocol: ssh, https, http
+  -h, --hostname string       The hostname of the GitLab instance to authenticate with.
+      --stdin                 Read token from standard input.
+  -t, --token string          Your GitLab access token.
+      --use-keyring           Store token in your operating system's keyring.
 ```
 
 ## Options inherited from parent commands

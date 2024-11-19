@@ -12,7 +12,7 @@ endif
 TEST_FORMAT = short-verbose
 endif
 
-GLAB_VERSION ?= 1.45.0
+GLAB_VERSION ?= $(shell git describe --tags 2>/dev/null || git rev-parse --short HEAD)
 DATE_FMT = +%Y-%m-%d
 ifdef SOURCE_DATE_EPOCH
     BUILD_DATE ?= $(shell date -u -d "@$(SOURCE_DATE_EPOCH)" "$(DATE_FMT)" 2>/dev/null || date -u -r "$(SOURCE_DATE_EPOCH)" "$(DATE_FMT)" 2>/dev/null || date -u "$(DATE_FMT)")
@@ -77,11 +77,11 @@ run:
 
 .PHONY: rt
 rt: ## Test release without publishing
-	goreleaser --snapshot --skip-publish --rm-dist
+	goreleaser release --snapshot --clean
 
 .PHONY: rtdebug
 rtdebug: ## Test release with debug info
-	goreleaser --snapshot --skip-publish --rm-dist --debug
+	goreleaser release --snapshot --clean --verbose
 
 .PHONY: release
 release:

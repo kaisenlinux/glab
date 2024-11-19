@@ -70,14 +70,14 @@ func Test_NewCmdNote(t *testing.T) {
 		fakeHTTP.RegisterResponder(http.MethodGet, "/projects/OWNER/REPO/merge_requests/122",
 			httpmock.NewStringResponse(http.StatusNotFound, `
 		{
-  			"message" : "merge request not found"
+  			"message": "merge request not found"
 		}
 	`))
 
 		// glab mr note 1 --message "Here is my note"
 		_, err := runCommand(fakeHTTP, true, `122`)
 		assert.NotNil(t, err)
-		assert.Equal(t, "failed to get merge request 122: GET https://gitlab.com/api/v4/projects/OWNER/REPO/merge_requests/122: 404 {message: merge request not found}", err.Error())
+		assert.Equal(t, "failed to get merge request 122: 404 Not Found", err.Error())
 	})
 }
 
@@ -89,7 +89,7 @@ func Test_NewCmdNote_error(t *testing.T) {
 		fakeHTTP.RegisterResponder(http.MethodPost, "/projects/OWNER/REPO/merge_requests/1/notes",
 			httpmock.NewStringResponse(http.StatusUnauthorized, `
 		{
-			"message" : "Unauthorized"
+			"message": "Unauthorized"
 		}
 	`))
 

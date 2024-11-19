@@ -1,3 +1,11 @@
+glab (1.49.0-1kaisen) kaisen-packages; urgency=medium
+
+  * Import the 1.49.0 release
+  * Bump the golang-go version required to build
+  * Add the quilt patch named harcoded-version-number
+
+ -- Kevin Chevreuil - Kaisen <kaisen@kaisenlinux.org>  Tue, 19 Nov 2024 17:19:40 +0200
+
 glab (1.45.0-1kaisen) kaisen-packages; urgency=medium
 
   * Import the 1.45.0 release

@@ -46,6 +46,18 @@ If you are a GitLab team member that is interested in becoming a maintainer of t
 
 ## Getting Started
 
+### Reporting Issues
+
+Create a [new issue from the "Default" template](https://gitlab.com/gitlab-org/cli/-/issues/new?issuable_template=Default) and follow the instructions in the template.
+
+### Your First Code Contribution?
+
+Read about the contribution process in [`development_process.md`](docs/development_process.md). This document explains how we review and release changes.
+
+If your merge request is trivial (fixing typos, fixing a bug with 20 lines of code), create a merge request.
+
+If your merge request is large, create an issue first. See [Reporting Issues](#reporting-issues) and [Proposing Features](#proposing-features). In the issue, the project maintainers can help you scope the work and make you more efficient.
+
 ### Building the project
 
 Prerequisites:
@@ -60,14 +72,21 @@ Run the new binary as: `./bin/glab`
 
 Run tests with: `go test ./...` or `make test`.
 
-There are some integration tests that perform read-only API requests to `https://gitlab.com`.
-If the environment variables `GITLAB_TEST_HOST` and `GITLAB_TOKEN` are not set, the integration tests will fail in CI or will be skipped locally.
+There are some integration tests that perform real API requests to `https://gitlab.com`.
+If the environment variables `GITLAB_TEST_HOST` and `GITLAB_TOKEN` are not set, the integration tests will fail in CI if
+being run in the `gitlab-org/cli` project. They will be skipped locally or in forks if `GITLAB_TEST_HOST` and `GITLAB_TOKEN`
+are both are omitted.
 Integration tests use the `_Integration` test suffix and use the `_integration_test.go` file suffix.
 
 `GITLAB_TEST_HOST` is set to `https://gitlab.com` in CI.
 
 `GITLAB_TOKEN` must be a
-[personal access token](https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html) and only requires the `read_api` scope.
+[personal access token](https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html) and requires the `api` scope.
+To ensure the `glab duo` feature is functioning correctly, the token's user must have a GitLab Duo seat.
+
+### Proposing Features
+
+Create a [new issue from the "Feature Request" template](https://gitlab.com/gitlab-org/cli/-/issues/new?issuable_template=Feature%20Request) and follow the instructions in the template.
 
 ### Designing a new feature
 

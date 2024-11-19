@@ -14,6 +14,7 @@ import (
 
 	"gitlab.com/gitlab-org/cli/api"
 	"gitlab.com/gitlab-org/cli/commands/cmdutils"
+	"gitlab.com/gitlab-org/cli/commands/mr/create"
 	"gitlab.com/gitlab-org/cli/commands/mr/mrutils"
 	"gitlab.com/gitlab-org/cli/internal/config"
 	"gitlab.com/gitlab-org/cli/internal/glrepo"
@@ -57,17 +58,18 @@ func NewCmdSyncStack(f *cmdutils.Factory) *cobra.Command {
 		Short: `Sync and submit progress on a stacked diff. (EXPERIMENTAL.)`,
 		Long: heredoc.Doc(`Sync and submit progress on a stacked diff. This command runs these steps:
 
-1. Creates a merge request for any branches without one.
+1. Optional. If working in a fork, select whether to push to the fork,
+   or the upstream repository.
 1. Pushes any amended changes to their merge requests.
 1. Rebases any changes that happened previously in the stack.
 1. Removes any branches that were already merged, or with a closed merge request.
 ` + text.ExperimentalString),
 		Example: heredoc.Doc(`
-			glab sync
+			glab stack sync
 		`),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			iostream.StartSpinner("Syncing")
-			err := stackSync(f, opts)
+			err := stackSync(f, iostream, opts)
 			iostream.StopSpinner("")
 			if err != nil {
 				return fmt.Errorf("could not run sync: %v", err)
@@ -80,18 +82,36 @@ func NewCmdSyncStack(f *cmdutils.Factory) *cobra.Command {
 	return stackSaveCmd
 }
 
-func stackSync(f *cmdutils.Factory, opts *Options) error {
-	repo, err := f.BaseRepo()
-	if err != nil {
-		return fmt.Errorf("error determining base repository: %v. Are you in a Git repository?", err)
-	}
-
+func stackSync(f *cmdutils.Factory, iostream *iostreams.IOStreams, opts *Options) error {
 	client, err := authWithGitlab(f, opts)
 	if err != nil {
 		return fmt.Errorf("error authorizing with GitLab: %v", err)
 	}
 
+	iostream.StopSpinner("")
+
+	repo, err := f.BaseRepo()
+	if err != nil {
+		return fmt.Errorf("error determining base repo: %v", err)
+	}
+
+	// This prompts the user for the head repo if they're in a fork,
+	// allowing them to choose between their fork and the original repository
+	source, err := create.ResolvedHeadRepo(f)()
+	if err != nil {
+		return fmt.Errorf("error determining head repo: %v", err)
+	}
+
+	iostream.StartSpinner("Syncing")
+
 	stack, err := getStack()
+	if err != nil {
+		return err
+	}
+
+	var gr git.StandardGitCommand
+
+	err = fetchOrigin(gr)
 	if err != nil {
 		return err
 	}
@@ -101,13 +121,7 @@ func stackSync(f *cmdutils.Factory, opts *Options) error {
 	for {
 		needsToSyncAgain = false
 
-		ref, err := stack.First()
-		if err != nil {
-			return fmt.Errorf("error getting first stack. Your data in %s might be corrupted: %v", git.StackLocation, err)
-		}
-
-		var gr git.StandardGitCommand
-		for {
+		for ref := range stack.Iter() {
 			status, err := branchStatus(&ref, gr)
 			if err != nil {
 				return fmt.Errorf("error getting branch status: %v", err)
@@ -134,27 +148,25 @@ func stackSync(f *cmdutils.Factory, opts *Options) error {
 			}
 
 			if ref.MR == "" {
-				err := populateMR(&stack, &ref, repo, client, gr)
+				err := populateMR(&stack, &ref, repo, source, client, gr)
 				if err != nil {
 					return err
 				}
 			} else {
-				// we have an MR. let's make sure it's still open.
-				mr, _, err := mrutils.MRFromArgsWithOpts(f, nil, nil, "opened")
+				// we found an MR. let's get the status:
+				mr, _, err := mrutils.MRFromArgsWithOpts(f, []string{ref.Branch}, nil, "any")
 				if err != nil {
 					return fmt.Errorf("error getting merge request from branch: %v. Does it still exist?", err)
 				}
+
+				// remove the MR from the stack if it's merged
+				// do not remove the MR from the stack if it is closed,
+				// but alert the user
 				err = removeOldMrs(&ref, mr, &stack)
 				if err != nil {
 					return fmt.Errorf("error removing merged merge request: %v", err)
 				}
 			}
-
-			if ref.Next == "" {
-				break
-			}
-
-			ref = stack.Refs[ref.Next]
 		}
 
 		if !needsToSyncAgain {
@@ -205,6 +217,17 @@ func gitPull(ref *git.StackRef, gr git.GitRunner) (string, error) {
 	return pull, nil
 }
 
+func fetchOrigin(gr git.GitRunner) error {
+	output, err := gr.Git("fetch", git.DefaultRemote)
+	debug("Fetching from remote:", output)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func branchStatus(ref *git.StackRef, gr git.GitRunner) (string, error) {
 	checkout, err := gr.Git("checkout", ref.Branch)
 	if err != nil {
@@ -222,10 +245,7 @@ func branchStatus(ref *git.StackRef, gr git.GitRunner) (string, error) {
 }
 
 func rebaseWithUpdateRefs(ref *git.StackRef, stack *git.Stack, gr git.GitRunner) error {
-	lastRef, err := stack.Last()
-	if err != nil {
-		return err
-	}
+	lastRef := stack.Last()
 
 	checkout, err := gr.Git("checkout", lastRef.Branch)
 	if err != nil {
@@ -271,14 +291,26 @@ func forcePushWithLease(gr git.GitRunner) error {
 	return nil
 }
 
-func createMR(client *gitlab.Client, repo glrepo.Interface, stack *git.Stack, ref *git.StackRef, gr git.GitRunner) (*gitlab.MergeRequest, error) {
-	_, err := gr.Git("push", "--set-upstream", git.DefaultRemote, ref.Branch)
+func createMR(
+	client *gitlab.Client,
+	target glrepo.Interface,
+	source glrepo.Interface,
+	stack *git.Stack,
+	ref *git.StackRef,
+	gr git.GitRunner,
+) (*gitlab.MergeRequest, error) {
+	targetProject, err := api.GetProject(client, target.FullName())
+	if err != nil {
+		return &gitlab.MergeRequest{}, fmt.Errorf("error getting target project: %v", err)
+	}
+
+	_, err = gr.Git("push", "--set-upstream", git.DefaultRemote, ref.Branch)
 	if err != nil {
 		return &gitlab.MergeRequest{}, fmt.Errorf("error pushing branch: %v", err)
 	}
 
 	var previousBranch string
-	if ref.Prev == "" {
+	if ref.IsFirst() {
 		// Point to the default one
 		previousBranch, err = git.GetDefaultBranch(git.DefaultRemote)
 		if err != nil {
@@ -307,9 +339,10 @@ func createMR(client *gitlab.Client, repo glrepo.Interface, stack *git.Stack, re
 		TargetBranch:       gitlab.Ptr(previousBranch),
 		AssigneeID:         gitlab.Ptr(user.ID),
 		RemoveSourceBranch: gitlab.Ptr(true),
+		TargetProjectID:    gitlab.Ptr(targetProject.ID),
 	}
 
-	mr, err := api.CreateMR(client, repo.FullName(), l)
+	mr, err := api.CreateMR(client, source.FullName(), l)
 	if err != nil {
 		return &gitlab.MergeRequest{}, fmt.Errorf("error creating merge request with the API: %v", err)
 	}
@@ -411,11 +444,18 @@ func branchBehind(ref *git.StackRef, gr git.StandardGitCommand) error {
 	return nil
 }
 
-func populateMR(stack *git.Stack, ref *git.StackRef, repo glrepo.Interface, client *gitlab.Client, gr git.StandardGitCommand) error {
+func populateMR(
+	stack *git.Stack,
+	ref *git.StackRef,
+	target glrepo.Interface,
+	source glrepo.Interface,
+	client *gitlab.Client,
+	gr git.StandardGitCommand,
+) error {
 	// no MR - lets create one!
 	fmt.Println(progressString(ref.Branch + " needs a merge request. Creating it now."))
 
-	mr, err := createMR(client, repo, stack, ref, gr)
+	mr, err := createMR(client, target, source, stack, ref, gr)
 	if err != nil {
 		return fmt.Errorf("error updating stack ref files: %v", err)
 	}

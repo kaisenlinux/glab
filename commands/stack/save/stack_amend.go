@@ -6,16 +6,17 @@ import (
 
 	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/briandowns/spinner"
+
 	"gitlab.com/gitlab-org/cli/internal/run"
 	"gitlab.com/gitlab-org/cli/pkg/git"
-	"gitlab.com/gitlab-org/cli/pkg/prompt"
 	"gitlab.com/gitlab-org/cli/pkg/text"
 
 	"github.com/spf13/cobra"
+
 	"gitlab.com/gitlab-org/cli/commands/cmdutils"
 )
 
-func NewCmdAmendStack(f *cmdutils.Factory) *cobra.Command {
+func NewCmdAmendStack(f *cmdutils.Factory, getText cmdutils.GetTextUsingEditor) *cobra.Command {
 	stackSaveCmd := &cobra.Command{
 		Use:   "amend",
 		Short: `Save more changes to a stacked diff. (EXPERIMENTAL.)`,
@@ -25,7 +26,7 @@ func NewCmdAmendStack(f *cmdutils.Factory) *cobra.Command {
 			glab stack amend . -m "fixed a function"
 			glab stack amend newfile -d "forgot to add this"`),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			output, err := amendFunc(f, args, description)
+			output, err := amendFunc(f, args, getText, description)
 			if err != nil {
 				return fmt.Errorf("could not run stack amend: %v", err)
 			}
@@ -44,9 +45,7 @@ func NewCmdAmendStack(f *cmdutils.Factory) *cobra.Command {
 	return stackSaveCmd
 }
 
-func amendFunc(f *cmdutils.Factory, args []string, description string) (string, error) {
-	s := spinner.New(spinner.CharSets[11], 100*time.Millisecond)
-
+func amendFunc(f *cmdutils.Factory, args []string, getText cmdutils.GetTextUsingEditor, description string) (string, error) {
 	// check if there are even any changes before we start
 	err := checkForChanges()
 	if err != nil {
@@ -59,22 +58,24 @@ func amendFunc(f *cmdutils.Factory, args []string, description string) (string, 
 		return "", fmt.Errorf("error running Git command: %v", err)
 	}
 
-	stack, err := checkForStack(title)
+	ref, err := git.CurrentStackRefFromBranch(title)
 	if err != nil {
 		return "", fmt.Errorf("error checking for stack: %v", err)
 	}
 
-	if stack.Branch == "" {
+	if ref.Branch == "" {
 		return "", fmt.Errorf("not currently in a stack. Change to the branch you want to amend.")
 	}
 
 	// a description is required, so ask if one is not provided
 	if description == "" {
-		err := prompt.AskQuestionWithInput(&description, "description", "How would you describe this change?", stack.Description, true)
+		description, err = promptForCommit(f, getText, ref.Description)
 		if err != nil {
-			return "", fmt.Errorf("error prompting for title description: %v", err)
+			return "", fmt.Errorf("error getting commit message: %v", err)
 		}
 	}
+
+	s := spinner.New(spinner.CharSets[11], 100*time.Millisecond)
 
 	// git add files
 	_, err = addFiles(args[0:])
@@ -108,24 +109,4 @@ func gitAmend(description string) error {
 	fmt.Println("Amend commit: ", string(output))
 
 	return nil
-}
-
-func checkForStack(title string) (git.StackRef, error) {
-	stack, err := git.GatherStackRefs(title)
-	if err != nil {
-		return git.StackRef{}, err
-	}
-
-	branch, err := git.CurrentBranch()
-	if err != nil {
-		return git.StackRef{}, err
-	}
-
-	for _, ref := range stack.Refs {
-		if ref.Branch == branch {
-			return ref, nil
-		}
-	}
-
-	return git.StackRef{}, nil
 }

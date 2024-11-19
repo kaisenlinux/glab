@@ -87,14 +87,14 @@ func TestNewCheckUpdateCmd_error(t *testing.T) {
 	fakeHTTP.RegisterResponder(http.MethodGet, `https://gitlab.com/api/v4/projects/gitlab-org/cli/releases?page=1&per_page=1`,
 		httpmock.NewStringResponse(http.StatusNotFound, `
 				{
-					"message" : "test error"
+					"message": "test error"
 				}
 			`))
 
 	output, err := runCommand(fakeHTTP, "1.11.0")
 
 	assert.NotNil(t, err)
-	assert.Equal(t, `failed checking for glab updates: GET https://gitlab.com/api/v4/projects/gitlab-org/cli/releases: 404 {message: test error}`, err.Error())
+	assert.Equal(t, `failed checking for glab updates: 404 Not Found`, err.Error())
 	assert.Equal(t, "", output.String())
 	assert.Equal(t, "", output.Stderr())
 }

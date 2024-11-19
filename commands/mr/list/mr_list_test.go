@@ -84,15 +84,15 @@ func TestMergeRequestList_tty(t *testing.T) {
 		httpmock.NewStringResponse(http.StatusOK, `
 [
   {
-    "state" : "opened",
-    "description" : "a description here",
-    "project_id" : 1,
-    "updated_at" : "2016-01-04T15:31:51.081Z",
-    "id" : 76,
-    "title" : "MergeRequest one",
-    "created_at" : "2016-01-04T15:31:51.081Z",
-    "iid" : 6,
-    "labels" : ["foo", "bar"],
+    "state": "opened",
+    "description": "a description here",
+    "project_id": 1,
+    "updated_at": "2016-01-04T15:31:51.081Z",
+    "id": 76,
+    "title": "MergeRequest one",
+    "created_at": "2016-01-04T15:31:51.081Z",
+    "iid": 6,
+    "labels": ["foo", "bar"],
 	"target_branch": "master",
     "source_branch": "test1",
     "web_url": "http://gitlab.com/OWNER/REPO/merge_requests/6",
@@ -103,17 +103,17 @@ func TestMergeRequestList_tty(t *testing.T) {
     }
   },
   {
-    "state" : "opened",
-    "description" : "description two here",
-    "project_id" : 1,
-    "updated_at" : "2016-01-04T15:31:51.081Z",
-    "id" : 77,
-    "title" : "MergeRequest two",
-    "created_at" : "2016-01-04T15:31:51.081Z",
-    "iid" : 7,
+    "state": "opened",
+    "description": "description two here",
+    "project_id": 1,
+    "updated_at": "2016-01-04T15:31:51.081Z",
+    "id": 77,
+    "title": "MergeRequest two",
+    "created_at": "2016-01-04T15:31:51.081Z",
+    "iid": 7,
 	"target_branch": "master",
     "source_branch": "test2",
-    "labels" : ["fooz", "baz"],
+    "labels": ["fooz", "baz"],
     "web_url": "http://gitlab.com/OWNER/REPO/merge_requests/7",
     "references": {
       "full": "OWNER/REPO/merge_requests/7",
@@ -148,7 +148,7 @@ func TestMergeRequestList_tty_withFlags(t *testing.T) {
 			httpmock.NewStringResponse(http.StatusOK, `[]`))
 
 		fakeHTTP.RegisterResponder(http.MethodGet, "/users",
-			httpmock.NewStringResponse(http.StatusOK, `[{"id" : 1, "iid" : 1, "username": "john_smith"}]`))
+			httpmock.NewStringResponse(http.StatusOK, `[{"id": 1, "iid": 1, "username": "john_smith"}]`))
 
 		output, err := runCommand(fakeHTTP, true, "--opened -P1 -p100 -a someuser -l bug -m1", nil, "")
 		if err != nil {
@@ -230,15 +230,15 @@ func TestMergeRequestList_hyperlinks(t *testing.T) {
 				httpmock.NewStringResponse(http.StatusOK, `
 [
   {
-    "state" : "opened",
-    "description" : "a description here",
-    "project_id" : 1,
-    "updated_at" : "2016-01-04T15:31:51.081Z",
-    "id" : 76,
-    "title" : "MergeRequest one",
-    "created_at" : "2016-01-04T15:31:51.081Z",
-    "iid" : 6,
-    "labels" : ["foo", "bar"],
+    "state": "opened",
+    "description": "a description here",
+    "project_id": 1,
+    "updated_at": "2016-01-04T15:31:51.081Z",
+    "id": 76,
+    "title": "MergeRequest one",
+    "created_at": "2016-01-04T15:31:51.081Z",
+    "iid": 6,
+    "labels": ["foo", "bar"],
 	"target_branch": "master",
     "source_branch": "test1",
     "web_url": "http://gitlab.com/OWNER/REPO/merge_requests/6",
@@ -249,17 +249,17 @@ func TestMergeRequestList_hyperlinks(t *testing.T) {
     }
   },
   {
-    "state" : "opened",
-    "description" : "description two here",
-    "project_id" : 1,
-    "updated_at" : "2016-01-04T15:31:51.081Z",
-    "id" : 77,
-    "title" : "MergeRequest two",
-    "created_at" : "2016-01-04T15:31:51.081Z",
-    "iid" : 7,
+    "state": "opened",
+    "description": "description two here",
+    "project_id": 1,
+    "updated_at": "2016-01-04T15:31:51.081Z",
+    "id": 77,
+    "title": "MergeRequest two",
+    "created_at": "2016-01-04T15:31:51.081Z",
+    "iid": 7,
 	"target_branch": "master",
     "source_branch": "test2",
-    "labels" : ["fooz", "baz"],
+    "labels": ["fooz", "baz"],
     "web_url": "http://gitlab.com/OWNER/REPO/merge_requests/7",
     "references": {
       "full": "OWNER/REPO/merge_requests/7",
@@ -326,15 +326,15 @@ func TestMergeRequestList_labels(t *testing.T) {
 				httpmock.NewStringResponse(http.StatusOK, `
 		[
 		  {
-			"state" : "opened",
-			"description" : "a description here",
-			"project_id" : 1,
-			"updated_at" : "2016-01-04T15:31:51.081Z",
-			"id" : 76,
-			"title" : "MergeRequest one",
-			"created_at" : "2016-01-04T15:31:51.081Z",
-			"iid" : 6,
-			"labels" : ["foo", "bar"],
+			"state": "opened",
+			"description": "a description here",
+			"project_id": 1,
+			"updated_at": "2016-01-04T15:31:51.081Z",
+			"id": 76,
+			"title": "MergeRequest one",
+			"created_at": "2016-01-04T15:31:51.081Z",
+			"iid": 6,
+			"labels": ["foo", "bar"],
 			"target_branch": "master",
 			"source_branch": "test1",
 			"web_url": "http://gitlab.com/OWNER/REPO/merge_requests/6",
@@ -383,4 +383,183 @@ func TestMrListJSON(t *testing.T) {
 
 	assert.JSONEq(t, expectedOut, output.String())
 	assert.Empty(t, output.Stderr())
+}
+
+func TestMergeRequestList_GroupAndReviewer(t *testing.T) {
+	fakeHTTP := httpmock.New()
+	defer fakeHTTP.Verify(t)
+
+	fakeHTTP.RegisterResponder(http.MethodGet, "/api/v4/user",
+		httpmock.NewStringResponse(http.StatusOK, `{"id": 1, "username": "me"}`))
+
+	fakeHTTP.RegisterResponder(http.MethodGet, "/api/v4/groups/GROUP/merge_requests",
+		httpmock.NewStringResponse(http.StatusOK, `
+[
+  {
+    "state" : "opened",
+    "description" : "a description here",
+    "project_id" : 1,
+    "updated_at" : "2016-01-04T15:31:51.081Z",
+    "id" : 76,
+    "title" : "MergeRequest one",
+    "created_at" : "2016-01-04T15:31:51.081Z",
+    "iid" : 6,
+    "labels" : ["foo", "bar"],
+	"target_branch": "master",
+    "source_branch": "test1",
+    "web_url": "http://gitlab.com/OWNER/REPO/merge_requests/6",
+    "references": {
+      "full": "OWNER/REPO/merge_requests/6",
+      "relative": "#6",
+      "short": "#6"
+    }
+  }
+]
+`))
+
+	output, err := runCommand(fakeHTTP, true, "--group GROUP --reviewer @me", nil, "")
+	if err != nil {
+		t.Errorf("error running command `mr list`: %v", err)
+	}
+
+	assert.Equal(t, heredoc.Doc(`
+		Showing 1 open merge request on GROUP. (Page 1)
+
+		!6	OWNER/REPO/merge_requests/6	MergeRequest one	(master) ← (test1)
+
+	`), output.String())
+	assert.Equal(t, ``, output.Stderr())
+
+	lastRequest := fakeHTTP.Requests[len(fakeHTTP.Requests)-1]
+	assert.Contains(t, lastRequest.URL.RawQuery, "reviewer_id=1")
+}
+
+func TestMergeRequestList_GroupAndAssignee(t *testing.T) {
+	fakeHTTP := httpmock.New()
+	defer fakeHTTP.Verify(t)
+
+	// Add stub for user lookup
+	fakeHTTP.RegisterResponder(http.MethodGet, "/api/v4/user",
+		httpmock.NewStringResponse(http.StatusOK, `{"id": 1, "username": "me"}`))
+
+	fakeHTTP.RegisterResponder(http.MethodGet, "/api/v4/groups/GROUP/merge_requests",
+		httpmock.NewStringResponse(http.StatusOK, `
+[
+  {
+    "state" : "opened",
+    "description" : "a description here",
+    "project_id" : 1,
+    "updated_at" : "2016-01-04T15:31:51.081Z",
+    "id" : 76,
+    "title" : "MergeRequest one",
+    "created_at" : "2016-01-04T15:31:51.081Z",
+    "iid" : 6,
+    "labels" : ["foo", "bar"],
+	"target_branch": "master",
+    "source_branch": "test1",
+    "web_url": "http://gitlab.com/OWNER/REPO/merge_requests/6",
+    "references": {
+      "full": "OWNER/REPO/merge_requests/6",
+      "relative": "#6",
+      "short": "#6"
+    }
+  }
+]
+`))
+
+	output, err := runCommand(fakeHTTP, true, "--group GROUP --assignee @me", nil, "")
+	if err != nil {
+		t.Errorf("error running command `mr list`: %v", err)
+	}
+
+	assert.Equal(t, heredoc.Doc(`
+		Showing 1 open merge request on GROUP. (Page 1)
+
+		!6	OWNER/REPO/merge_requests/6	MergeRequest one	(master) ← (test1)
+
+	`), output.String())
+	assert.Equal(t, ``, output.Stderr())
+
+	lastRequest := fakeHTTP.Requests[len(fakeHTTP.Requests)-1]
+	assert.Contains(t, lastRequest.URL.RawQuery, "assignee_id=1")
+}
+
+func TestMergeRequestList_GroupWithAssigneeAndReviewer(t *testing.T) {
+	fakeHTTP := httpmock.New()
+	defer fakeHTTP.Verify(t)
+	fakeHTTP.MatchURL = httpmock.PathAndQuerystring
+
+	fakeHTTP.RegisterResponder(http.MethodGet, "/api/v4/users?per_page=30&username=some.user",
+		httpmock.NewStringResponse(http.StatusOK, `[{"id": 2, "username": "some.user"}]`))
+
+	fakeHTTP.RegisterResponder(http.MethodGet, "/api/v4/users?per_page=30&username=other.user",
+		httpmock.NewStringResponse(http.StatusOK, `[{"id": 1, "username": "other.user"}]`))
+
+	fakeHTTP.RegisterResponder(http.MethodGet, "/api/v4/groups/GROUP/merge_requests?assignee_id=1&page=1&per_page=30&state=opened",
+		httpmock.NewStringResponse(http.StatusOK, `
+[
+  {
+    "state": "opened",
+    "description": "a description here",
+    "project_id": 1,
+    "updated_at": "2016-01-04T15:31:51.081Z",
+    "id": 76,
+    "title": "MergeRequest one",
+    "created_at": "2016-01-04T15:31:51.081Z",
+    "iid": 6,
+    "labels": ["foo", "bar"],
+    "target_branch": "master",
+    "source_branch": "test1",
+    "web_url": "http://gitlab.com/OWNER/REPO/merge_requests/6",
+    "references": {
+      "full": "OWNER/REPO/merge_requests/6",
+      "relative": "#6",
+      "short": "#6"
+    }
+  }
+]
+`))
+
+	fakeHTTP.RegisterResponder(http.MethodGet, "/api/v4/groups/GROUP/merge_requests?page=1&per_page=30&reviewer_id=2&state=opened",
+		httpmock.NewStringResponse(http.StatusOK, `
+[
+  {
+    "state": "opened",
+    "description": "a description here",
+    "project_id": 2,
+    "updated_at": "2024-01-04T15:31:51.081Z",
+    "id": 77,
+    "title": "MergeRequest one",
+    "created_at": "2024-01-04T15:31:51.081Z",
+    "iid": 7,
+    "labels": ["baz", "bar"],
+    "target_branch": "master",
+    "source_branch": "test2",
+    "web_url": "http://gitlab.com/OWNER/REPO/merge_requests/7",
+    "references": {
+      "full": "OWNER/REPO/merge_requests/7",
+      "relative": "#7",
+      "short": "#7"
+    }
+  }
+]
+`))
+
+	output, err := runCommand(fakeHTTP, true, "--group GROUP --reviewer=some.user --assignee=other.user", nil, "")
+	if err != nil {
+		t.Errorf("error running command `mr list`: %v", err)
+	}
+
+	assert.Equal(t, heredoc.Doc(`
+		Showing 2 open merge requests on GROUP. (Page 1)
+
+		!7	OWNER/REPO/merge_requests/7	MergeRequest one	(master) ← (test2)
+		!6	OWNER/REPO/merge_requests/6	MergeRequest one	(master) ← (test1)
+
+	`), output.String())
+	assert.Equal(t, ``, output.Stderr())
+
+	requests := fakeHTTP.Requests
+	// 2 for users lookup, 2 for merge requests (assignee and reviewer)
+	assert.Len(t, requests, 4)
 }

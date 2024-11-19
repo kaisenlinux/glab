@@ -33,7 +33,7 @@ stacks
 
 ```plaintext
 glab stack create cool-new-feature
-glab sync
+glab stack sync
 
 ```
 
@@ -55,8 +55,10 @@ glab sync
 - [`create`](create.md)
 - [`first`](first.md)
 - [`last`](last.md)
+- [`list`](list.md)
 - [`move`](move.md)
 - [`next`](next.md)
 - [`prev`](prev.md)
 - [`save`](save.md)
+- [`switch`](switch.md)
 - [`sync`](sync.md)

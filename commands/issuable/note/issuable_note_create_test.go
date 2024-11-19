@@ -84,7 +84,7 @@ func Test_NewCmdNote(t *testing.T) {
 			fakeHTTP.RegisterResponder(http.MethodGet, "/projects/OWNER/REPO/issues/122",
 				httpmock.NewStringResponse(http.StatusNotFound, `
 				{
-					"message" : "issue not found"
+					"message": "issue not found"
 				}
 			`))
 
@@ -92,7 +92,7 @@ func Test_NewCmdNote(t *testing.T) {
 			// glab incident note 1 --message "Here is my note"
 			_, err := runCommand(fakeHTTP, true, `122`, cc.issueType)
 			assert.NotNil(t, err)
-			assert.Equal(t, "GET https://gitlab.com/api/v4/projects/OWNER/REPO/issues/122: 404 {message: issue not found}", err.Error())
+			assert.Equal(t, "404 Not Found", err.Error())
 		})
 	}
 }
@@ -114,7 +114,7 @@ func Test_NewCmdNote_error(t *testing.T) {
 			fakeHTTP.RegisterResponder(http.MethodPost, "/projects/OWNER/REPO/issues/1/notes",
 				httpmock.NewStringResponse(http.StatusUnauthorized, `
 				{
-					"message" : "Unauthorized"
+					"message": "Unauthorized"
 				}
 			`))
 
