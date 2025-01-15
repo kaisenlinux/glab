@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/xanzy/go-gitlab"
+	gitlab "gitlab.com/gitlab-org/api/client-go"
 	glab_api "gitlab.com/gitlab-org/cli/api"
 	"gopkg.in/yaml.v3"
 )
@@ -88,6 +88,12 @@ func (a *apiWrapper) ConfigureAgent(agent *gitlab.Agent, branch string) error {
 		err = yaml.Unmarshal(content, &cfg)
 		if err != nil {
 			return err
+		}
+
+		if cfg.UserAccess == nil {
+			cfg.UserAccess = &agentConfigUserAccess{
+				AccessAs: &agentConfigAccessAs{Agent: struct{}{}},
+			}
 		}
 
 		if !slices.ContainsFunc(cfg.UserAccess.Projects, func(p *agentConfigProject) bool { return p.ID == agent.ConfigProject.PathWithNamespace }) {

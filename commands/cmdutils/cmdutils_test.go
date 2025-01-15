@@ -10,7 +10,7 @@ import (
 	"github.com/acarl005/stripansi"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/xanzy/go-gitlab"
+	gitlab "gitlab.com/gitlab-org/api/client-go"
 	"gitlab.com/gitlab-org/cli/api"
 	"gitlab.com/gitlab-org/cli/internal/glrepo"
 	"gitlab.com/gitlab-org/cli/pkg/git"
@@ -1043,7 +1043,7 @@ func Test_LabelsPromptAPIFail(t *testing.T) {
 		Repo:   repo,
 	}
 
-	api.ListLabels = func(_ *gitlab.Client, _ interface{}, _ *gitlab.ListLabelsOptions) ([]*gitlab.Label, error) {
+	api.ListLabels = func(_ *gitlab.Client, _ interface{}, _ *api.ListLabelsOptions) ([]*gitlab.Label, error) {
 		return nil, errors.New("API call failed")
 	}
 
@@ -1067,7 +1067,7 @@ func Test_LabelsPromptPromptsFail(t *testing.T) {
 
 	t.Run("MultiSelect", func(t *testing.T) {
 		// Return a list with at least one value so we hit the MultiSelect path
-		api.ListLabels = func(_ *gitlab.Client, _ interface{}, _ *gitlab.ListLabelsOptions) ([]*gitlab.Label, error) {
+		api.ListLabels = func(_ *gitlab.Client, _ interface{}, _ *api.ListLabelsOptions) ([]*gitlab.Label, error) {
 			return []*gitlab.Label{
 				{
 					Name: "foo",
@@ -1093,7 +1093,7 @@ func Test_LabelsPromptPromptsFail(t *testing.T) {
 
 	t.Run("AskQuestionWithInput", func(t *testing.T) {
 		// Return an empty list so we hit the AskQuestionWithInput prompt path
-		api.ListLabels = func(_ *gitlab.Client, _ interface{}, _ *gitlab.ListLabelsOptions) ([]*gitlab.Label, error) {
+		api.ListLabels = func(_ *gitlab.Client, _ interface{}, _ *api.ListLabelsOptions) ([]*gitlab.Label, error) {
 			return []*gitlab.Label{}, nil
 		}
 
@@ -1126,7 +1126,7 @@ func Test_LabelsPromptMultiSelect(t *testing.T) {
 		Repo:   repo,
 	}
 
-	api.ListLabels = func(_ *gitlab.Client, _ interface{}, _ *gitlab.ListLabelsOptions) ([]*gitlab.Label, error) {
+	api.ListLabels = func(_ *gitlab.Client, _ interface{}, _ *api.ListLabelsOptions) ([]*gitlab.Label, error) {
 		return []*gitlab.Label{
 			{
 				Name: "foo",
@@ -1206,7 +1206,7 @@ func Test_LabelsPromptAskQuestionWithInput(t *testing.T) {
 		Repo:   repo,
 	}
 
-	api.ListLabels = func(_ *gitlab.Client, _ interface{}, _ *gitlab.ListLabelsOptions) ([]*gitlab.Label, error) {
+	api.ListLabels = func(_ *gitlab.Client, _ interface{}, _ *api.ListLabelsOptions) ([]*gitlab.Label, error) {
 		return []*gitlab.Label{}, nil
 	}
 

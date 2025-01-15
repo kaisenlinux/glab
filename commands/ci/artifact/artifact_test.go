@@ -1,4 +1,4 @@
-package ci
+package artifact
 
 import (
 	"archive/zip"
@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"gitlab.com/gitlab-org/cli/pkg/iostreams"
 
-	"github.com/xanzy/go-gitlab"
+	gitlab "gitlab.com/gitlab-org/api/client-go"
 	"gitlab.com/gitlab-org/cli/api"
 
 	"github.com/google/shlex"

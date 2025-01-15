@@ -8,7 +8,7 @@ import (
 
 	"github.com/MakeNowJust/heredoc/v2"
 	"github.com/spf13/cobra"
-	"github.com/xanzy/go-gitlab"
+	gitlab "gitlab.com/gitlab-org/api/client-go"
 	"gitlab.com/gitlab-org/cli/commands/cmdutils"
 	"gitlab.com/gitlab-org/cli/pkg/tableprinter"
 )
@@ -135,6 +135,10 @@ func listAllProjects(apiClient *gitlab.Client, opts Options) ([]*gitlab.Project,
 		}
 	}
 
+	if opts.ArchivedSet {
+		l.Archived = gitlab.Ptr(opts.Archived)
+	}
+
 	if opts.Sort != "" {
 		l.Sort = gitlab.Ptr(opts.Sort)
 	}
@@ -184,10 +188,10 @@ func listAllProjectsForGroup(apiClient *gitlab.Client, opts Options) ([]*gitlab.
 		if opts.IncludeSubgroups {
 			l.IncludeSubGroups = gitlab.Ptr(true)
 		}
+	}
 
-		if opts.ArchivedSet {
-			l.Archived = gitlab.Ptr(opts.Archived)
-		}
+	if opts.ArchivedSet {
+		l.Archived = gitlab.Ptr(opts.Archived)
 	}
 
 	if opts.Sort != "" {

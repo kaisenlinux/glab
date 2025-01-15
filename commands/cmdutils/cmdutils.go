@@ -12,7 +12,7 @@ import (
 
 	"gitlab.com/gitlab-org/cli/pkg/iostreams"
 
-	"github.com/xanzy/go-gitlab"
+	gitlab "gitlab.com/gitlab-org/api/client-go"
 	"gitlab.com/gitlab-org/cli/api"
 	"gitlab.com/gitlab-org/cli/internal/glrepo"
 	"gitlab.com/gitlab-org/cli/pkg/utils"
@@ -146,9 +146,9 @@ func EditorPrompt(response *string, question, templateContent, editorCommand str
 type GetTextUsingEditor func(editor, tmpFileName, content string) (string, error)
 
 func LabelsPrompt(response *[]string, apiClient *gitlab.Client, repoRemote *glrepo.Remote) (err error) {
-	lOpts := &gitlab.ListLabelsOptions{}
-	lOpts.PerPage = 100
-	labels, err := api.ListLabels(apiClient, repoRemote.FullName(), lOpts)
+	labelOpts := &api.ListLabelsOptions{}
+	labelOpts.PerPage = 100
+	labels, err := api.ListLabels(apiClient, repoRemote.FullName(), labelOpts)
 	if err != nil {
 		return err
 	}

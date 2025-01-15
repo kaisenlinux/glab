@@ -197,6 +197,21 @@ To authenticate your installation of `glab` with a personal access token:
      Not recommended for shared environments.
    - Credentials are stored in the global configuration file.
 
+### CI Job Token
+
+To authenticate your installation of `glab` with a CI job token, the `glab` command must be run in a GitLab CI job.
+The token is automatically provided by the GitLab Runner via the `CI_JOB_TOKEN` environment variable.
+
+Example:
+
+```shell
+glab auth login --job-token $CI_JOB_TOKEN --hostname $CI_SERVER_HOST --api-protocol $CI_SERVER_PROTOCOL
+GITLAB_HOST=$CI_SERVER_URL glab release list -R $CI_PROJECT_PATH
+```
+
+Endpoints allowing the use of the CI job token are listed in the
+[GitLab documentation](https://docs.gitlab.com/ee/ci/jobs/ci_job_token.html#job-token-feature-access).
+
 ## Configuration
 
 By default, `glab` follows the
@@ -275,6 +290,7 @@ glab config set ca_cert /path/to/server.pem --host gitlab.example.com
   Available options are (`dark`|`light`|`notty`) or set a [custom style](https://github.com/charmbracelet/glamour#styles)
 - `NO_COLOR`: set to any value to avoid printing ANSI escape sequences for color output.
 - `FORCE_HYPERLINKS`: set to `1` to force hyperlinks to be output, even when not outputting to a TTY
+- `DEBUG`: set to `1` or `true` to output additional information for each command
 
 ### Token and environment variable precedence
 
@@ -282,6 +298,14 @@ GLab uses tokens in this order:
 
 1. Environment variable (`GITLAB_TOKEN`).
 1. Configuration file (`$HOME/.config/glab-cli/config.yml`).
+
+### Debugging
+
+When the `DEBUG` environment variable is set to `1` or `true`, `glab` outputs more logging information, including:
+
+- Underlying Git commands.
+- Expanded aliases.
+- DNS error details.
 
 ## Issues
 
